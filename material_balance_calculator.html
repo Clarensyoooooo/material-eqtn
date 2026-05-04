@@ -1,0 +1,1456 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Material Balance Calculator</title>
+<link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;600;700&family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  /* BSU Red Accent Colors */
+  --accent: #d60000; 
+  --accent-lt: #fde8e8; 
+  --accent-dk: #a80000;
+  
+  --green: #1e8e3e; --green-lt: #e6f4ea;
+  --red: #d93025; --red-lt: #fce8e6;
+  --yellow: #f9ab00; --yellow-lt: #fef7e0;
+  --g50: #f8f9fa; --g100: #f1f3f4; --g200: #e8eaed;
+  --g300: #dadce0; --g500: #9aa0a6; --g600: #80868b;
+  --g700: #5f6368; --g800: #3c4043; --g900: #202124;
+  
+  /* Sidebar Widths */
+  --sw: 240px; 
+  --sw-collapsed: 72px;
+  --hh: 60px;
+  
+  --fm: 'Google Sans', 'Roboto', sans-serif;
+  --fb: 'Roboto', sans-serif;
+  --sh1: 0 1px 2px rgba(60,64,67,.3),0 1px 3px 1px rgba(60,64,67,.15);
+  --r: 8px; --tr: all .2s cubic-bezier(.4,0,.2,1);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--fb);background:var(--g50);color:var(--g900);display:flex;min-height:100vh;font-size:14px}
+
+/* ── SIDEBAR ── */
+.sidebar {
+  width: var(--sw);
+  background: #fff;
+  height: 100vh;
+  position: fixed;
+  left: 0;
+  top: 0;
+  border-right: 1px solid var(--g200);
+  display: flex;
+  flex-direction: column;
+  z-index: 100;
+  overflow-x: hidden;
+  overflow-y: auto;
+  white-space: nowrap;
+  transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.sidebar-logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--g200);
+  transition: padding 0.3s ease;
+}
+
+.custom-logo {
+  width: 34px;
+  height: 34px;
+  border-radius: 6px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
+.logo-text {
+  font-family: var(--fm);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--g800);
+  line-height: 1.3;
+}
+.logo-text span {
+  display: block;
+  font-weight: 400;
+  color: var(--g600);
+  font-size: 11px;
+}
+
+.sidebar-nav { padding: 6px 0; flex: 1; }
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 9px 16px;
+  cursor: pointer;
+  color: var(--g700);
+  border-radius: 0 24px 24px 0;
+  margin-right: 12px;
+  font-family: var(--fm);
+  font-size: 13px;
+  font-weight: 500;
+  transition: padding 0.3s ease, background 0.2s, color 0.2s, margin 0.3s ease;
+  user-select: none;
+}
+.nav-item:hover { background: var(--g100); color: var(--g900); }
+.nav-item.active { background: var(--accent-lt); color: var(--accent); }
+.nav-item svg { flex-shrink: 0; opacity: .75; }
+.nav-item.active svg { opacity: 1; }
+.nav-item:hover svg { opacity: 1; }
+
+.sidebar-section {
+  padding: 14px 16px 4px;
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--g500);
+  letter-spacing: .8px;
+  text-transform: uppercase;
+}
+
+.preset-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 16px;
+  cursor: pointer;
+  border-radius: 0 24px 24px 0;
+  margin-right: 12px;
+  font-size: 12px;
+  color: var(--g700);
+  transition: padding 0.3s ease, background 0.2s, margin 0.3s ease;
+}
+.preset-item:hover { background: var(--g100); }
+.preset-item.active { background: var(--accent-lt); color: var(--accent); }
+
+.preset-dot {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.preset-dot.accent { background: var(--accent-lt); } 
+.preset-dot.teal { background: #e6f4ea; } 
+.preset-dot.orange { background: #fef3e2; } 
+.preset-dot.purple { background: #f3e8fd; }
+
+.preset-info { line-height: 1.3; }
+.preset-name { font-weight: 500; font-size: 12px; }
+.preset-desc { font-size: 10px; color: var(--g500); }
+
+.sidebar-footer { padding: 10px 12px; transition: padding 0.3s ease; }
+.new-btn {
+  width: 100%;
+  padding: 9px;
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: var(--r);
+  font-family: var(--fm);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: padding 0.3s ease, background 0.2s, box-shadow 0.2s;
+}
+.new-btn:hover { background: var(--accent-dk); box-shadow: var(--sh1); }
+
+/* ── COLLAPSED STATE ── */
+body.collapsed .sidebar { width: var(--sw-collapsed); }
+body.collapsed .main { margin-left: var(--sw-collapsed); }
+
+/* Smoothly hide text elements by shrinking max-width and fading */
+.logo-text, .nav-item span, .preset-info, .new-btn span, .sidebar-section {
+  transition: opacity 0.2s ease, max-width 0.3s ease, margin 0.3s ease, padding 0.3s ease;
+  opacity: 1;
+  max-width: 200px;
+  overflow: hidden;
+}
+
+body.collapsed .logo-text,
+body.collapsed .nav-item span,
+body.collapsed .preset-info,
+body.collapsed .new-btn span {
+  opacity: 0;
+  max-width: 0;
+  pointer-events: none;
+}
+
+/* Specific fix to fully remove the sidebar section headers vertically */
+body.collapsed .sidebar-section {
+  opacity: 0;
+  max-height: 0;
+  padding-top: 0;
+  padding-bottom: 0;
+  margin: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+/* Center elements when collapsed */
+body.collapsed .sidebar-logo { padding-left: 19px; }
+body.collapsed .nav-item { padding-left: 28px; margin-right: 0; }
+body.collapsed .preset-item { padding-left: 23px; margin-right: 0; }
+body.collapsed .new-btn { padding-left: 0; padding-right: 0; justify-content: center; }
+
+/* ── MAIN ── */
+.main {
+  margin-left: var(--sw);
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ── TOPBAR ── */
+.topbar {
+  background: #fff;
+  border-bottom: 1px solid var(--g200);
+  padding: 0 24px;
+  height: var(--hh);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 50;
+}
+.topbar-left {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.menu-toggle {
+  background: none;
+  border: none;
+  color: var(--g700);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px;
+  margin-left: -6px;
+  border-radius: 4px;
+  transition: background 0.2s, color 0.2s;
+}
+.menu-toggle:hover {
+  background: var(--g100);
+  color: var(--accent);
+}
+.topbar-title h1 { font-family: var(--fm); font-size: 18px; font-weight: 600; color: var(--g900); }
+.topbar-title p { font-size: 11px; color: var(--g600); margin-top: 1px; }
+.topbar-actions { display: flex; gap: 8px; align-items: center; }
+
+.btn { padding: 7px 18px; border-radius: 6px; border: none; cursor: pointer; font-family: var(--fm); font-size: 13px; font-weight: 500; display: flex; align-items: center; gap: 6px; transition: var(--tr); }
+.btn-outline { background: #fff; border: 1px solid var(--g300); color: var(--g700); }
+.btn-outline:hover { background: var(--g100); }
+.btn-primary { background: var(--accent); color: #fff; }
+.btn-primary:hover { background: var(--accent-dk); box-shadow: var(--sh1); }
+
+/* ── PAGES ── */
+.page { display: none; flex: 1; padding: 20px 24px; }
+.page.active { display: flex; flex-direction: column; }
+#page-dashboard.active { display: grid; grid-template-columns: 1fr 316px; gap: 16px; align-items: start; }
+
+/* ── CARDS ── */
+.card { background: #fff; border-radius: var(--r); border: 1px solid var(--g200); overflow: hidden; margin-bottom: 16px; }
+.card:last-child { margin-bottom: 0; }
+.card-header { padding: 13px 16px 11px; border-bottom: 1px solid var(--g100); display: flex; align-items: center; gap: 9px; }
+.card-header svg { color: var(--g600); flex-shrink: 0; }
+.card-header-text { font-family: var(--fm); font-size: 13px; font-weight: 600; color: var(--g800); }
+.card-header-toggle { margin-left: auto; display: flex; align-items: center; gap: 8px; font-size: 11px; color: var(--g600); }
+.card-body { padding: 14px 16px; }
+
+/* ── FORMS ── */
+.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.form-group { display: flex; flex-direction: column; gap: 3px; }
+.form-label { font-size: 11px; color: var(--g600); font-weight: 500; }
+.form-label .ln { color: var(--g500); }
+.input-row { display: flex; }
+.form-input { flex: 1; padding: 7px 10px; border: 1px solid var(--g300); border-radius: 6px 0 0 6px; font-size: 13px; color: var(--g900); background: #fff; transition: var(--tr); font-family: var(--fb); outline: none; }
+.form-input:focus { border-color: var(--accent); box-shadow: 0 0 0 2px rgba(214,0,0,.15); }
+.form-select { padding: 7px 5px; border: 1px solid var(--g300); border-left: none; border-radius: 0 6px 6px 0; background: var(--g50); font-size: 11px; color: var(--g700); cursor: pointer; min-width: 60px; outline: none; font-family: var(--fb); }
+.form-select:focus { border-color: var(--accent); }
+
+/* ── TOGGLE ── */
+.toggle-wrap { display: flex; align-items: center; gap: 6px; cursor: pointer; }
+.toggle { width: 32px; height: 17px; background: var(--g300); border-radius: 9px; position: relative; transition: var(--tr); cursor: pointer; flex-shrink: 0; }
+.toggle.on { background: var(--accent); }
+.toggle::after { content: ''; position: absolute; width: 13px; height: 13px; background: #fff; border-radius: 50%; top: 2px; left: 2px; transition: var(--tr); box-shadow: 0 1px 3px rgba(0,0,0,.2); }
+.toggle.on::after { left: 17px; }
+.toggle-label { font-size: 12px; color: var(--g700); font-weight: 500; }
+
+/* ── RIGHT PANEL ── */
+.right-col { display: flex; flex-direction: column; gap: 16px; }
+.left-col { display: flex; flex-direction: column; }
+
+/* ── RESULT ── */
+.result-card { background: #fff; border-radius: var(--r); border: 1px solid var(--g200); overflow: hidden; }
+.result-header { background: linear-gradient(135deg, var(--accent), #ff6b6b); padding: 18px 16px; text-align: center; }
+.result-label { font-size: 9px; font-weight: 700; letter-spacing: 1.2px; color: rgba(255,255,255,.75); text-transform: uppercase; }
+.result-subtitle { font-size: 13px; color: rgba(255,255,255,.9); margin-top: 3px; font-family: var(--fm); font-weight: 500; }
+.result-value { font-size: 36px; font-weight: 700; color: #fff; font-family: var(--fm); margin: 8px 0 2px; letter-spacing: -1px; transition: var(--tr); }
+.result-unit { font-size: 12px; color: rgba(255,255,255,.75); }
+.result-body { padding: 13px 14px; }
+.view-steps-btn { width: 100%; padding: 9px; background: var(--green-lt); color: var(--green); border: 1px solid #b7dfc4; border-radius: 6px; font-family: var(--fm); font-size: 12px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; transition: var(--tr); }
+.view-steps-btn:hover { background: #d1eeda; }
+.steps-content { display: none; margin-top: 10px; }
+.steps-content.open { display: block; }
+.step-row { display: flex; justify-content: space-between; align-items: flex-start; padding: 6px 0; border-bottom: 1px solid var(--g100); font-size: 11px; gap: 8px; }
+.step-row:last-child { border-bottom: none; }
+.step-term { font-weight: 500; color: var(--g800); font-family: 'Courier New', monospace; font-size: 10px; flex: 1; }
+.step-val { color: var(--accent); font-weight: 600; text-align: right; white-space: nowrap; }
+
+/* ── FORMULA ── */
+.formula-section { padding: 12px 14px; }
+.formula-label { font-size: 10px; font-weight: 600; letter-spacing: .7px; color: var(--g500); text-transform: uppercase; margin-bottom: 8px; }
+.formula-box { background: var(--g50); border: 1px solid var(--g200); border-radius: 6px; padding: 10px 12px; font-family: 'Courier New', monospace; font-size: 10.5px; color: var(--g800); line-height: 1.9; }
+.formula-line { text-align: center; }
+.unit-section { padding: 0 14px 14px; }
+.unit-row { display: flex; justify-content: space-between; align-items: center; padding: 5px 0; border-bottom: 1px dashed var(--g200); font-size: 12px; }
+.unit-row:last-child { border-bottom: none; }
+.unit-key { color: var(--g600); }
+.unit-val { color: var(--g800); font-weight: 500; }
+.unit-sel { padding: 3px 6px; border: 1px solid var(--g300); border-radius: 4px; font-size: 11px; background: #fff; color: var(--g800); cursor: pointer; }
+
+/* ── WARNINGS ── */
+.warnings-card { background: #fff; border-radius: var(--r); border: 1px solid var(--g200); overflow: hidden; }
+.warnings-header { padding: 11px 14px; border-bottom: 1px solid var(--g100); font-family: var(--fm); font-size: 12px; font-weight: 600; color: var(--g700); display: flex; align-items: center; gap: 7px; }
+.warnings-body { padding: 8px 14px; }
+.warning-item { display: flex; align-items: center; gap: 7px; padding: 4px 0; font-size: 12px; }
+.wi-ok svg { color: var(--green); } .wi-warn svg { color: var(--yellow); } .wi-err svg { color: var(--red); }
+
+/* ── SUMMARY TABLE ── */
+.summary-card { background: #fff; border-radius: var(--r); border: 1px solid var(--g200); overflow: hidden; }
+.summary-hdr { padding: 11px 16px; border-bottom: 1px solid var(--g100); font-family: var(--fm); font-size: 11px; font-weight: 600; color: var(--g700); text-transform: uppercase; letter-spacing: .5px; display: flex; align-items: center; gap: 7px; }
+.table-wrap { max-height: 180px; overflow-y: auto; }
+.summary-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+.summary-table th { padding: 7px 12px; text-align: left; background: var(--g50); color: var(--g600); font-weight: 500; border-bottom: 1px solid var(--g200); font-size: 11px; position: sticky; top: 0; }
+.summary-table td { padding: 7px 12px; border-bottom: 1px solid var(--g100); color: var(--g800); }
+.summary-table td:first-child { font-family: 'Courier New', monospace; font-size: 10px; color: var(--accent); }
+.summary-table td:nth-child(3) { font-weight: 600; color: var(--g900); }
+.summary-table tr:hover td { background: var(--g50); }
+.summary-table tr:last-child td { border-bottom: none; }
+hr.div { border: none; border-top: 1px solid var(--g200); margin: 4px 0; }
+
+/* ════════════════════════════════════════════
+   CALCULATOR PAGE
+════════════════════════════════════════════ */
+#page-calculator.active { display: flex; flex-direction: column; gap: 0; }
+.calc-hero { background: #fff; border: 1px solid var(--g200); border-radius: var(--r); padding: 28px 32px; margin-bottom: 16px; }
+.calc-hero h2 { font-family: var(--fm); font-size: 16px; font-weight: 600; color: var(--g900); margin-bottom: 4px; }
+.calc-hero p { font-size: 12px; color: var(--g600); margin-bottom: 20px; }
+.calc-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-bottom: 20px; }
+.calc-input-group { display: flex; flex-direction: column; gap: 4px; }
+.calc-input-group label { font-size: 11px; font-weight: 500; color: var(--g600); }
+.calc-input-group input, .calc-input-group select { padding: 8px 10px; border: 1px solid var(--g300); border-radius: 6px; font-size: 13px; color: var(--g900); font-family: var(--fb); outline: none; background: #fff; transition: var(--tr); }
+.calc-input-group input:focus, .calc-input-group select:focus { border-color: var(--accent); box-shadow: 0 0 0 2px rgba(214,0,0,.15); }
+.calc-result-box { background: var(--accent-lt); border: 1px solid #ffcccc; border-radius: var(--r); padding: 20px 24px; display: flex; align-items: center; justify-content: space-between; }
+.calc-result-label { font-family: var(--fm); font-size: 13px; color: var(--accent-dk); font-weight: 500; }
+.calc-result-val { font-family: var(--fm); font-size: 28px; font-weight: 700; color: var(--accent); }
+.calc-btn { margin-top: 14px; padding: 9px 24px; background: var(--accent); color: #fff; border: none; border-radius: 6px; font-family: var(--fm); font-size: 13px; font-weight: 500; cursor: pointer; transition: var(--tr); }
+.calc-btn:hover { background: var(--accent-dk); }
+.uc-grid { display: grid; grid-template-columns: 1fr auto 1fr; gap: 10px; align-items: end; margin-bottom: 14px; }
+.uc-arrow { display: flex; align-items: center; justify-content: center; padding-bottom: 8px; color: var(--g500); }
+
+/* ════════════════════════════════════════════
+   SAVED SCENARIOS PAGE
+════════════════════════════════════════════ */
+#page-saved.active { display: flex; flex-direction: column; gap: 16px; }
+.scenario-grid { display: grid; grid-template-columns: repeat(auto-fill,minmax(280px,1fr)); gap: 14px; }
+.scenario-card { background: #fff; border: 1px solid var(--g200); border-radius: var(--r); padding: 16px; cursor: pointer; transition: var(--tr); }
+.scenario-card:hover { border-color: var(--accent); box-shadow: var(--sh1); }
+.sc-header { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+.sc-badge { width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.sc-badge.accent { background: var(--accent-lt); } .sc-badge.teal { background: var(--green-lt); } .sc-badge.orange { background: #fef3e2; } .sc-badge.purple { background: #f3e8fd; }
+.sc-name { font-family: var(--fm); font-size: 13px; font-weight: 600; color: var(--g900); }
+.sc-desc { font-size: 11px; color: var(--g600); margin-top: 1px; }
+.sc-meta { display: flex; gap: 8px; flex-wrap: wrap; }
+.sc-tag { background: var(--g100); color: var(--g700); font-size: 10px; padding: 2px 7px; border-radius: 10px; font-weight: 500; }
+.sc-n { font-family: var(--fm); font-size: 20px; font-weight: 700; color: var(--accent); margin: 8px 0 2px; }
+.sc-nlabel { font-size: 10px; color: var(--g500); }
+.sc-actions { display: flex; gap: 6px; margin-top: 12px; }
+.sc-btn { padding: 5px 12px; border-radius: 5px; border: 1px solid var(--g300); background: #fff; font-size: 11px; font-family: var(--fm); font-weight: 500; color: var(--g700); cursor: pointer; transition: var(--tr); display: flex; align-items: center; gap: 4px; }
+.sc-btn:hover { background: var(--g100); }
+.sc-btn.primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+.sc-btn.primary:hover { background: var(--accent-dk); }
+.page-hdr { margin-bottom: 4px; }
+.page-hdr h2 { font-family: var(--fm); font-size: 18px; font-weight: 600; color: var(--g900); }
+.page-hdr p { font-size: 12px; color: var(--g600); margin-top: 2px; }
+
+/* ════════════════════════════════════════════
+   UNIT CONVERTER PAGE
+════════════════════════════════════════════ */
+#page-converter.active { display: flex; flex-direction: column; gap: 16px; }
+.uc-card { background: #fff; border: 1px solid var(--g200); border-radius: var(--r); padding: 20px 24px; }
+.uc-card h3 { font-family: var(--fm); font-size: 13px; font-weight: 600; color: var(--g800); margin-bottom: 14px; display: flex; align-items: center; gap: 7px; }
+.uc-row { display: grid; grid-template-columns: 1fr auto 1fr; gap: 10px; align-items: end; margin-bottom: 10px; }
+.uc-field label { font-size: 11px; font-weight: 500; color: var(--g600); display: block; margin-bottom: 4px; }
+.uc-field input, .uc-field select { width: 100%; padding: 8px 10px; border: 1px solid var(--g300); border-radius: 6px; font-size: 13px; color: var(--g900); font-family: var(--fb); outline: none; background: #fff; transition: var(--tr); }
+.uc-field input:focus, .uc-field select:focus { border-color: var(--accent); box-shadow: 0 0 0 2px rgba(214,0,0,.15); }
+.uc-mid { display: flex; align-items: center; justify-content: center; padding-bottom: 2px; color: var(--g400); }
+.uc-result { background: var(--accent-lt); border: 1px solid #ffcccc; border-radius: 6px; padding: 10px 14px; font-family: var(--fm); font-size: 18px; font-weight: 700; color: var(--accent); text-align: center; }
+.uc-cards-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.conv-table { width: 100%; border-collapse: collapse; font-size: 12px; margin-top: 10px; }
+.conv-table th { text-align: left; padding: 6px 10px; background: var(--g50); color: var(--g600); font-weight: 500; font-size: 11px; border-bottom: 1px solid var(--g200); }
+.conv-table td { padding: 6px 10px; border-bottom: 1px solid var(--g100); color: var(--g800); }
+.conv-table tr:last-child td { border-bottom: none; }
+
+/* ════════════════════════════════════════════
+   SETTINGS PAGE
+════════════════════════════════════════════ */
+#page-settings.active { display: flex; flex-direction: column; gap: 16px; }
+.settings-section { background: #fff; border: 1px solid var(--g200); border-radius: var(--r); overflow: hidden; }
+.settings-section-hdr { padding: 13px 18px; border-bottom: 1px solid var(--g100); font-family: var(--fm); font-size: 13px; font-weight: 600; color: var(--g800); display: flex; align-items: center; gap: 8px; }
+.settings-row { display: flex; align-items: center; justify-content: space-between; padding: 13px 18px; border-bottom: 1px solid var(--g100); }
+.settings-row:last-child { border-bottom: none; }
+.settings-row-label { font-size: 13px; font-weight: 500; color: var(--g900); }
+.settings-row-desc { font-size: 11px; color: var(--g600); margin-top: 2px; }
+.settings-select { padding: 6px 10px; border: 1px solid var(--g300); border-radius: 6px; font-size: 12px; background: #fff; color: var(--g800); cursor: pointer; font-family: var(--fb); outline: none; }
+.settings-select:focus { border-color: var(--accent); }
+.settings-input { padding: 6px 10px; border: 1px solid var(--g300); border-radius: 6px; font-size: 12px; background: #fff; color: var(--g800); font-family: var(--fb); outline: none; width: 120px; }
+.settings-input:focus { border-color: var(--accent); box-shadow: 0 0 0 2px rgba(214,0,0,.15); }
+
+/* ════════════════════════════════════════════
+   HELP PAGE
+════════════════════════════════════════════ */
+#page-help.active { display: flex; flex-direction: column; gap: 16px; }
+.help-grid { display: grid; grid-template-columns: 260px 1fr; gap: 16px; align-items: start; }
+.help-nav { background: #fff; border: 1px solid var(--g200); border-radius: var(--r); overflow: hidden; position: sticky; top: 76px; }
+.help-nav-item { padding: 10px 16px; font-size: 13px; color: var(--g700); cursor: pointer; border-bottom: 1px solid var(--g100); display: flex; align-items: center; gap: 8px; font-family: var(--fm); font-weight: 500; transition: var(--tr); }
+.help-nav-item:last-child { border-bottom: none; }
+.help-nav-item:hover { background: var(--g100); }
+.help-nav-item.active { background: var(--accent-lt); color: var(--accent); }
+.help-content { display: flex; flex-direction: column; gap: 14px; }
+.help-section { background: #fff; border: 1px solid var(--g200); border-radius: var(--r); padding: 20px 24px; }
+.help-section h3 { font-family: var(--fm); font-size: 15px; font-weight: 600; color: var(--g900); margin-bottom: 10px; }
+.help-section p { font-size: 13px; color: var(--g700); line-height: 1.65; margin-bottom: 8px; }
+.help-section p:last-child { margin-bottom: 0; }
+.help-term-table { width: 100%; border-collapse: collapse; font-size: 12px; margin-top: 8px; }
+.help-term-table th { text-align: left; padding: 7px 12px; background: var(--g50); color: var(--g600); font-weight: 500; font-size: 11px; border-bottom: 1px solid var(--g200); }
+.help-term-table td { padding: 7px 12px; border-bottom: 1px solid var(--g100); color: var(--g800); vertical-align: top; }
+.help-term-table td:first-child { font-family: 'Courier New', monospace; font-size: 11px; color: var(--accent); font-weight: 600; white-space: nowrap; }
+.help-term-table tr:last-child td { border-bottom: none; }
+.tip-box { background: var(--accent-lt); border-left: 3px solid var(--accent); border-radius: 0 6px 6px 0; padding: 10px 14px; font-size: 12px; color: var(--accent-dk); margin-top: 10px; }
+
+/* ════════════════════════════════════════════
+   ABOUT PAGE
+════════════════════════════════════════════ */
+#page-about.active { display: flex; flex-direction: column; gap: 16px; }
+.about-hero { background: linear-gradient(135deg, var(--accent), #ff6b6b); border-radius: var(--r); padding: 36px 32px; color: #fff; text-align: center; }
+.about-hero h2 { font-family: var(--fm); font-size: 22px; font-weight: 700; margin-bottom: 6px; }
+.about-hero p { font-size: 13px; opacity: .85; max-width: 500px; margin: 0 auto; }
+.about-version { display: inline-block; background: rgba(255,255,255,.2); border-radius: 12px; padding: 3px 12px; font-size: 11px; font-weight: 600; margin-top: 12px; letter-spacing: .5px; }
+.about-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.about-card { background: #fff; border: 1px solid var(--g200); border-radius: var(--r); padding: 18px 20px; }
+.about-card h3 { font-family: var(--fm); font-size: 13px; font-weight: 600; color: var(--g900); margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
+.about-card p, .about-card li { font-size: 12px; color: var(--g700); line-height: 1.7; }
+.about-card ul { padding-left: 16px; }
+.about-card li { margin-bottom: 3px; }
+.about-badge { display: inline-flex; align-items: center; gap: 5px; background: var(--g100); border-radius: 6px; padding: 6px 10px; font-size: 11px; font-weight: 500; color: var(--g700); margin: 3px; }
+.about-badges { display: flex; flex-wrap: wrap; margin-top: 6px; }
+
+/* scrollbar */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--g300); border-radius: 3px; }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════ SIDEBAR ═══════════════════════ -->
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <!-- Replace 'logo.png' with your actual logo file name/URL -->
+    <img src="logo.png" alt="Logo" class="custom-logo">
+    <div class="logo-text">Material Balance<span>Calculator</span></div>
+  </div>
+
+  <nav class="sidebar-nav">
+    <div class="nav-item active" data-page="dashboard">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+      <span>Dashboard</span>
+    </div>
+    <div class="nav-item" data-page="calculator">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="2" width="16" height="20" rx="2"/><line x1="8" y1="6" x2="16" y2="6"/><line x1="8" y1="10" x2="10" y2="10"/><line x1="8" y1="14" x2="10" y2="14"/><line x1="8" y1="18" x2="10" y2="18"/><line x1="14" y1="10" x2="16" y2="10"/><line x1="14" y1="14" x2="16" y2="14"/><line x1="14" y1="18" x2="16" y2="18"/></svg>
+      <span>Calculator</span>
+    </div>
+    <div class="nav-item" data-page="saved">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+      <span>Saved Scenarios</span>
+    </div>
+    <div class="nav-item" data-page="converter">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3L4 7l4 4"/><line x1="4" y1="7" x2="20" y2="7"/><path d="M16 21l4-4-4-4"/><line x1="20" y1="17" x2="4" y2="17"/></svg>
+      <span>Unit Converter</span>
+    </div>
+    <div class="nav-item" data-page="settings">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      <span>Settings</span>
+    </div>
+    <div class="nav-item" data-page="help">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+      <span>Help</span>
+    </div>
+    <div class="nav-item" data-page="about">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      <span>About</span>
+    </div>
+  </nav>
+
+  <div class="sidebar-section">Preset Scenarios</div>
+  <div id="presets">
+    <div class="preset-item active" data-preset="volumetric">
+      <div class="preset-dot accent"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#d60000" stroke-width="2.5"><circle cx="12" cy="12" r="9"/></svg></div>
+      <div class="preset-info"><div class="preset-name">Volumetric</div><div class="preset-desc">Wo = 0, m = 0</div></div>
+    </div>
+    <div class="preset-item" data-preset="water_drive">
+      <div class="preset-dot teal"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#1e8e3e" stroke-width="2.5"><path d="M12 2C12 2 5 10 5 15a7 7 0 0014 0C19 10 12 2 12 2z"/></svg></div>
+      <div class="preset-info"><div class="preset-name">Water Drive</div><div class="preset-desc">Include water influx</div></div>
+    </div>
+    <div class="preset-item" data-preset="gas_cap">
+      <div class="preset-dot orange"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#e37400" stroke-width="2.5"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></div>
+      <div class="preset-info"><div class="preset-name">Gas Cap</div><div class="preset-desc">Include gas cap</div></div>
+    </div>
+    <div class="preset-item" data-preset="custom">
+      <div class="preset-dot purple"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#8430ce" stroke-width="2.5"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></div>
+      <div class="preset-info"><div class="preset-name">Custom Scenario</div><div class="preset-desc">Choose your own</div></div>
+    </div>
+  </div>
+
+  <div class="sidebar-footer">
+    <button class="new-btn" onclick="newScenario()">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      <span>New Scenario</span>
+    </button>
+  </div>
+</aside>
+
+<!-- ═══════════════════════ MAIN ═══════════════════════ -->
+<main class="main">
+
+  <!-- TOPBAR -->
+  <div class="topbar" id="topbar">
+    <div class="topbar-left">
+      <!-- The Menu Toggle button is now nicely positioned up top! -->
+      <button class="menu-toggle" onclick="toggleSidebar()" title="Toggle Menu">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+      </button>
+      <div class="topbar-title">
+        <h1 id="page-title">Material Balance Equation Calculator</h1>
+        <p id="page-subtitle">Calculate Original Oil In Place (N) using the general material balance equation</p>
+      </div>
+    </div>
+    <div class="topbar-actions" id="topbar-actions">
+      <button class="btn btn-outline" onclick="resetAll()">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 102.13-9.36L1 10"/></svg>
+        Reset
+      </button>
+      <button class="btn btn-primary" onclick="calculate()">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        Calculate
+      </button>
+    </div>
+  </div>
+
+  <!-- ══ PAGE: DASHBOARD ══ -->
+  <div class="page active" id="page-dashboard">
+
+    <!-- LEFT COLUMN -->
+    <div class="left-col">
+      <!-- A. Production -->
+      <div class="card">
+        <div class="card-header">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.24 12.24a6 6 0 00-8.49-8.49L5 10.5V19h8.5z"/><line x1="16" y1="8" x2="2" y2="22"/><line x1="17.5" y1="15" x2="9" y2="15"/></svg>
+          <span class="card-header-text">A. Production &amp; Reservoir Terms</span>
+        </div>
+        <div class="card-body">
+          <div class="form-grid">
+            <div class="form-group">
+              <div class="form-label">N<sub>p</sub> <span class="ln">(Cumulative Oil Production)</span></div>
+              <div class="input-row"><input class="form-input" type="number" id="Np" value="12500"><select class="form-select"><option>STB</option></select></div>
+            </div>
+            <div class="form-group">
+              <div class="form-label">B<sub>t</sub> <span class="ln">(Total Formation Vol. Factor)</span></div>
+              <div class="input-row"><input class="form-input" type="number" id="Bt" value="1.250"><select class="form-select"><option>rb/STB</option></select></div>
+            </div>
+            <div class="form-group">
+              <div class="form-label">B<sub>i</sub> <span class="ln">(Initial Formation Vol. Factor)</span></div>
+              <div class="input-row"><input class="form-input" type="number" id="Bi" value="1.300"><select class="form-select"><option>rb/STB</option></select></div>
+            </div>
+            <div class="form-group">
+              <div class="form-label">R<sub>p</sub> <span class="ln">(Gas-Oil Ratio)</span></div>
+              <div class="input-row"><input class="form-input" type="number" id="Rp" value="850"><select class="form-select"><option>scf/STB</option></select></div>
+            </div>
+            <div class="form-group">
+              <div class="form-label">R<sub>si</sub> <span class="ln">(Initial Gas-Oil Ratio)</span></div>
+              <div class="input-row"><input class="form-input" type="number" id="Rsi" value="900"><select class="form-select"><option>scf/STB</option></select></div>
+            </div>
+            <div class="form-group">
+              <div class="form-label">B<sub>g</sub> <span class="ln">(Gas Formation Vol. Factor)</span></div>
+              <div class="input-row"><input class="form-input" type="number" id="Bg" value="0.00450"><select class="form-select"><option>rb/scf</option></select></div>
+            </div>
+            <div class="form-group">
+              <div class="form-label">B<sub>gi</sub> <span class="ln">(Initial Gas Formation Vol. Factor)</span></div>
+              <div class="input-row"><input class="form-input" type="number" id="Bgi" value="0.00500"><select class="form-select"><option>rb/scf</option></select></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- B. Water Terms -->
+      <div class="card">
+        <div class="card-header">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2C12 2 5 10 5 15a7 7 0 0014 0C19 10 12 2 12 2z"/></svg>
+          <span class="card-header-text">B. Water Terms</span>
+          <div class="card-header-toggle">Include Water Terms <div class="toggle on" id="toggle_water" onclick="toggleFeature('water')"></div></div>
+        </div>
+        <div class="card-body" id="water_section">
+          <div class="form-grid">
+            <div class="form-group">
+              <div class="form-label">W<sub>e</sub> <span class="ln">(Water Influx)</span></div>
+              <div class="input-row"><input class="form-input" type="number" id="We" value="25000"><select class="form-select"><option>STB</option></select></div>
+            </div>
+            <div class="form-group">
+              <div class="form-label">W<sub>p</sub> <span class="ln">(Cumulative Water Production)</span></div>
+              <div class="input-row"><input class="form-input" type="number" id="Wp" value="8000"><select class="form-select"><option>STB</option></select></div>
+            </div>
+            <div class="form-group">
+              <div class="form-label">B<sub>w</sub> <span class="ln">(Water Formation Vol. Factor)</span></div>
+              <div class="input-row"><input class="form-input" type="number" id="Bw" value="1.020"><select class="form-select"><option>rb/STB</option></select></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- C. Rock & Fluid -->
+      <div class="card">
+        <div class="card-header">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 3H5a2 2 0 00-2 2v4m6-6h10a2 2 0 012 2v4M9 3v18m0 0h10a2 2 0 002-2V9M9 21H5a2 2 0 01-2-2V9m0 0h18"/></svg>
+          <span class="card-header-text">C. Rock &amp; Fluid Properties</span>
+        </div>
+        <div class="card-body">
+          <div style="display:flex;gap:16px;margin-bottom:12px;flex-wrap:wrap">
+            <div class="toggle-wrap" onclick="toggleFeature('gasscap')"><div class="toggle on" id="toggle_gasscap"></div><span class="toggle-label">Include m (Gas Cap)</span></div>
+            <div class="toggle-wrap" onclick="toggleFeature('compress')"><div class="toggle on" id="toggle_compress"></div><span class="toggle-label">Include Compressibility (c<sub>w</sub>, c<sub>f</sub>)</span></div>
+          </div>
+          <div class="form-grid">
+            <div class="form-group" id="m_group">
+              <div class="form-label">m <span class="ln">(Gas Cap Expansion Factor)</span></div>
+              <div class="input-row"><input class="form-input" type="number" id="m" value="0.35"><select class="form-select"><option>—</option></select></div>
+            </div>
+            <div class="form-group">
+              <div class="form-label">S<sub>wi</sub> <span class="ln">(Initial Water Saturation)</span></div>
+              <div class="input-row"><input class="form-input" type="number" id="Swi" value="0.25"><select class="form-select"><option>frac</option></select></div>
+            </div>
+            <div class="form-group" id="cw_group">
+              <div class="form-label">c<sub>w</sub> <span class="ln">(Water Compressibility)</span></div>
+              <div class="input-row"><input class="form-input" type="number" id="cw" value="3e-6"><select class="form-select"><option>1/psi</option></select></div>
+            </div>
+            <div class="form-group" id="cf_group">
+              <div class="form-label">c<sub>f</sub> <span class="ln">(Rock Compressibility)</span></div>
+              <div class="input-row"><input class="form-input" type="number" id="cf" value="1e-6"><select class="form-select"><option>1/psi</option></select></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- D. Pressure -->
+      <div class="card">
+        <div class="card-header">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+          <span class="card-header-text">D. Pressure</span>
+        </div>
+        <div class="card-body">
+          <div class="form-grid">
+            <div class="form-group">
+              <div class="form-label">&Delta;p <span class="ln">(Pressure Change)</span></div>
+              <div class="input-row"><input class="form-input" type="number" id="dp" value="1500"><select class="form-select"><option>psi</option></select></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Calculation Summary -->
+      <div class="summary-card">
+        <div class="summary-hdr">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+          Calculation Summary
+        </div>
+        <div class="table-wrap">
+          <table class="summary-table">
+            <thead><tr><th>Term</th><th>Description</th><th>Value</th><th>Unit</th></tr></thead>
+            <tbody id="summary_body"><tr><td colspan="4" style="text-align:center;color:var(--g500);padding:18px 12px;font-size:12px">Click Calculate to see results</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div><!-- end left-col -->
+
+    <!-- RIGHT COLUMN -->
+    <div class="right-col">
+      <!-- Result -->
+      <div class="result-card">
+        <div class="result-header">
+          <div class="result-label">Result</div>
+          <div class="result-subtitle">Original Oil In Place (N)</div>
+          <div class="result-value" id="result_value">—</div>
+          <div class="result-unit">STB</div>
+        </div>
+        <div class="result-body">
+          <button class="view-steps-btn" onclick="toggleSteps()">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+            View Calculation Steps
+            <svg id="steps_arrow" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+          </button>
+          <div class="steps-content" id="steps_content"></div>
+        </div>
+      </div>
+
+      <!-- Active Formula -->
+      <div class="card">
+        <div class="card-header">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="19" y1="5" x2="5" y2="19"/><circle cx="6.5" cy="6.5" r="2.5"/><circle cx="17.5" cy="17.5" r="2.5"/></svg>
+          <span class="card-header-text">Active Formula</span>
+        </div>
+        <div class="formula-section">
+          <div class="formula-box" id="formula_box"></div>
+        </div>
+        <hr class="div">
+        <div class="unit-section">
+          <div class="formula-label">Unit System</div>
+          <div class="unit-row"><span class="unit-key">Unit System</span><select class="unit-sel" id="unit_system" onchange="updateUnits()"><option value="field">Field Units (Oilfield)</option><option value="si">SI Units</option></select></div>
+          <div class="unit-row"><span class="unit-key">Base Units</span><span class="unit-val" id="base_units_display">STB, rb, scf, psi</span></div>
+          <div class="unit-row"><span class="unit-key">Show converted values</span><div class="toggle" id="toggle_convert" onclick="toggleFeature('convert')"></div></div>
+        </div>
+      </div>
+
+      <!-- Warnings -->
+      <div class="warnings-card">
+        <div class="warnings-header">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          Warnings / Notes
+        </div>
+        <div class="warnings-body" id="warnings_body">
+          <div class="warning-item"><span class="wi-warn"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></span> Click Calculate to validate inputs.</div>
+        </div>
+      </div>
+    </div><!-- end right-col -->
+  </div>
+
+  <!-- ══ PAGE: CALCULATOR ══ -->
+  <div class="page" id="page-calculator">
+    <div class="page-hdr" style="margin-bottom:16px"><h2>Quick Calculator</h2><p>Perform focused calculations and parameter estimation</p></div>
+
+    <!-- OOIP from N = Q/E -->
+    <div class="card" style="margin-bottom:16px">
+      <div class="card-header">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+        <span class="card-header-text">Simplified OOIP — Volumetric Method</span>
+      </div>
+      <div class="card-body">
+        <p style="font-size:12px;color:var(--g600);margin-bottom:14px">N = 7758 &times; A &times; h &times; &phi; &times; (1 &minus; S<sub>wi</sub>) / B<sub>oi</sub></p>
+        <div class="calc-grid">
+          <div class="calc-input-group"><label>A — Area (acres)</label><input type="number" id="vc_A" value="640" oninput="calcVolumetric()"></div>
+          <div class="calc-input-group"><label>h — Net Pay Thickness (ft)</label><input type="number" id="vc_h" value="50" oninput="calcVolumetric()"></div>
+          <div class="calc-input-group"><label>&phi; — Porosity (fraction)</label><input type="number" id="vc_phi" value="0.18" step="0.01" oninput="calcVolumetric()"></div>
+          <div class="calc-input-group"><label>S<sub>wi</sub> — Connate Water Sat. (fraction)</label><input type="number" id="vc_Swi" value="0.25" step="0.01" oninput="calcVolumetric()"></div>
+          <div class="calc-input-group"><label>B<sub>oi</sub> — Initial Oil FVF (rb/STB)</label><input type="number" id="vc_Boi" value="1.30" step="0.01" oninput="calcVolumetric()"></div>
+        </div>
+        <div class="calc-result-box">
+          <div><div class="calc-result-label">N (Volumetric OOIP)</div><div style="font-size:11px;color:var(--accent-dk);margin-top:2px">STB</div></div>
+          <div class="calc-result-val" id="vc_result">—</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Recovery Factor -->
+    <div class="card" style="margin-bottom:16px">
+      <div class="card-header">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        <span class="card-header-text">Recovery Factor Calculator</span>
+      </div>
+      <div class="card-body">
+        <p style="font-size:12px;color:var(--g600);margin-bottom:14px">RF = N<sub>p</sub> / N &times; 100</p>
+        <div class="calc-grid">
+          <div class="calc-input-group"><label>N<sub>p</sub> — Cumulative Production (STB)</label><input type="number" id="rf_Np" value="12500" oninput="calcRF()"></div>
+          <div class="calc-input-group"><label>N — OOIP (STB)</label><input type="number" id="rf_N" value="88752" oninput="calcRF()"></div>
+        </div>
+        <div class="calc-result-box" style="margin-top:14px">
+          <div><div class="calc-result-label">Recovery Factor</div><div style="font-size:11px;color:var(--accent-dk);margin-top:2px">%</div></div>
+          <div class="calc-result-val" id="rf_result">—</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- GOR / WOR -->
+    <div class="card">
+      <div class="card-header">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+        <span class="card-header-text">Production Ratios</span>
+      </div>
+      <div class="card-body">
+        <div class="calc-grid">
+          <div class="calc-input-group"><label>Gas Production (scf/day)</label><input type="number" id="pr_gas" value="850000" oninput="calcRatios()"></div>
+          <div class="calc-input-group"><label>Oil Production (STB/day)</label><input type="number" id="pr_oil" value="1000" oninput="calcRatios()"></div>
+          <div class="calc-input-group"><label>Water Production (STB/day)</label><input type="number" id="pr_water" value="200" oninput="calcRatios()"></div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px">
+          <div class="calc-result-box"><div><div class="calc-result-label">GOR</div><div style="font-size:11px;color:var(--accent-dk)">scf/STB</div></div><div class="calc-result-val" id="gor_result">—</div></div>
+          <div class="calc-result-box"><div><div class="calc-result-label">WOR</div><div style="font-size:11px;color:var(--accent-dk)">STB/STB</div></div><div class="calc-result-val" id="wor_result">—</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ PAGE: SAVED SCENARIOS ══ -->
+  <div class="page" id="page-saved">
+    <div class="page-hdr"><h2>Saved Scenarios</h2><p>Load and manage previously calculated reservoir scenarios</p></div>
+    <div class="scenario-grid" id="scenario_grid"></div>
+  </div>
+
+  <!-- ══ PAGE: UNIT CONVERTER ══ -->
+  <div class="page" id="page-converter">
+    <div class="page-hdr"><h2>Unit Converter</h2><p>Convert between oilfield and SI units</p></div>
+    <div class="uc-cards-grid">
+
+      <!-- Volume -->
+      <div class="uc-card">
+        <h3><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/></svg> Volume</h3>
+        <div class="uc-row">
+          <div class="uc-field"><label>Value</label><input type="number" id="uc_vol_val" value="1" oninput="convertUnit('vol')"></div>
+          <div class="uc-field"><label>From</label><select id="uc_vol_from" onchange="convertUnit('vol')"><option>STB</option><option>bbl</option><option>m³</option><option>ft³</option><option>L</option></select></div>
+          <div class="uc-field"><label>To</label><select id="uc_vol_to" onchange="convertUnit('vol')"><option>m³</option><option>STB</option><option>bbl</option><option>ft³</option><option>L</option></select></div>
+        </div>
+        <div class="uc-result" id="uc_vol_result">—</div>
+      </div>
+
+      <!-- Pressure -->
+      <div class="uc-card">
+        <h3><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg> Pressure</h3>
+        <div class="uc-row">
+          <div class="uc-field"><label>Value</label><input type="number" id="uc_pres_val" value="1000" oninput="convertUnit('pres')"></div>
+          <div class="uc-field"><label>From</label><select id="uc_pres_from" onchange="convertUnit('pres')"><option>psi</option><option>kPa</option><option>MPa</option><option>bar</option><option>atm</option></select></div>
+          <div class="uc-field"><label>To</label><select id="uc_pres_to" onchange="convertUnit('pres')"><option>kPa</option><option>psi</option><option>MPa</option><option>bar</option><option>atm</option></select></div>
+        </div>
+        <div class="uc-result" id="uc_pres_result">—</div>
+      </div>
+
+      <!-- Length -->
+      <div class="uc-card">
+        <h3><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg> Length / Depth</h3>
+        <div class="uc-row">
+          <div class="uc-field"><label>Value</label><input type="number" id="uc_len_val" value="1" oninput="convertUnit('len')"></div>
+          <div class="uc-field"><label>From</label><select id="uc_len_from" onchange="convertUnit('len')"><option>ft</option><option>m</option><option>in</option><option>cm</option><option>km</option></select></div>
+          <div class="uc-field"><label>To</label><select id="uc_len_to" onchange="convertUnit('len')"><option>m</option><option>ft</option><option>in</option><option>cm</option><option>km</option></select></div>
+        </div>
+        <div class="uc-result" id="uc_len_result">—</div>
+      </div>
+
+      <!-- Temperature -->
+      <div class="uc-card">
+        <h3><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 14.76V3.5a2.5 2.5 0 00-5 0v11.26a4.5 4.5 0 105 0z"/></svg> Temperature</h3>
+        <div class="uc-row">
+          <div class="uc-field"><label>Value</label><input type="number" id="uc_temp_val" value="60" oninput="convertUnit('temp')"></div>
+          <div class="uc-field"><label>From</label><select id="uc_temp_from" onchange="convertUnit('temp')"><option>°F</option><option>°C</option><option>K</option><option>°R</option></select></div>
+          <div class="uc-field"><label>To</label><select id="uc_temp_to" onchange="convertUnit('temp')"><option>°C</option><option>°F</option><option>K</option><option>°R</option></select></div>
+        </div>
+        <div class="uc-result" id="uc_temp_result">—</div>
+      </div>
+
+    </div>
+
+    <!-- Reference Table -->
+    <div class="uc-card" style="margin-top:14px">
+      <h3><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/><line x1="9" y1="3" x2="9" y2="21"/></svg> Quick Reference — Common Oilfield Conversions</h3>
+      <table class="conv-table">
+        <thead><tr><th>Quantity</th><th>From</th><th>To</th><th>Multiply By</th></tr></thead>
+        <tbody>
+          <tr><td>Volume</td><td>1 STB</td><td>m³</td><td>0.158987</td></tr>
+          <tr><td>Volume</td><td>1 Mcf</td><td>m³</td><td>28.3168</td></tr>
+          <tr><td>Pressure</td><td>1 psi</td><td>kPa</td><td>6.89476</td></tr>
+          <tr><td>Pressure</td><td>1 psi</td><td>bar</td><td>0.068948</td></tr>
+          <tr><td>Length</td><td>1 ft</td><td>m</td><td>0.3048</td></tr>
+          <tr><td>Permeability</td><td>1 mD</td><td>m²</td><td>9.869 × 10⁻¹⁶</td></tr>
+          <tr><td>Viscosity</td><td>1 cP</td><td>mPa·s</td><td>1.0</td></tr>
+          <tr><td>Flow Rate</td><td>1 STB/day</td><td>m³/day</td><td>0.158987</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ══ PAGE: SETTINGS ══ -->
+  <div class="page" id="page-settings">
+    <div class="page-hdr" style="margin-bottom:16px"><h2>Settings</h2><p>Configure calculator behavior and display preferences</p></div>
+
+    <div class="settings-section">
+      <div class="settings-section-hdr">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        Calculation Preferences
+      </div>
+      <div class="settings-row">
+        <div class="settings-row-info"><div class="settings-row-label">Default Unit System</div><div class="settings-row-desc">Choose between oilfield and SI units</div></div>
+        <select class="settings-select" id="sett_units"><option>Field Units (Oilfield)</option><option>SI Units</option></select>
+      </div>
+      <div class="settings-row">
+        <div class="settings-row-info"><div class="settings-row-label">Decimal Precision</div><div class="settings-row-desc">Number of decimal places in results</div></div>
+        <select class="settings-select" id="sett_precision"><option>2</option><option>3</option><option>4</option><option>6</option></select>
+      </div>
+      <div class="settings-row">
+        <div class="settings-row-info"><div class="settings-row-label">Auto-Calculate on Input Change</div><div class="settings-row-desc">Recalculate automatically as you type</div></div>
+        <div class="toggle" id="toggle_autocalc" onclick="toggleSetting('autocalc')"></div>
+      </div>
+      <div class="settings-row">
+        <div class="settings-row-info"><div class="settings-row-label">Scientific Notation Threshold</div><div class="settings-row-desc">Display in sci. notation when value exceeds this</div></div>
+        <input class="settings-input" type="number" value="1000000" id="sett_sci_thresh">
+      </div>
+    </div>
+
+    <div class="settings-section">
+      <div class="settings-section-hdr">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/><line x1="9" y1="3" x2="9" y2="21"/></svg>
+        Display Preferences
+      </div>
+      <div class="settings-row">
+        <div class="settings-row-info"><div class="settings-row-label">Number Formatting</div><div class="settings-row-desc">Thousands separator style</div></div>
+        <select class="settings-select" id="sett_numfmt"><option>1,000,000.00 (US)</option><option>1.000.000,00 (EU)</option><option>1000000.00 (None)</option></select>
+      </div>
+      <div class="settings-row">
+        <div class="settings-row-info"><div class="settings-row-label">Show Calculation Steps by Default</div><div class="settings-row-desc">Expand steps panel automatically after calculation</div></div>
+        <div class="toggle" id="toggle_showsteps" onclick="toggleSetting('showsteps')"></div>
+      </div>
+      <div class="settings-row">
+        <div class="settings-row-info"><div class="settings-row-label">Highlight Active Formula Terms</div><div class="settings-row-desc">Colorize formula components in the formula panel</div></div>
+        <div class="toggle on" id="toggle_highlight" onclick="toggleSetting('highlight')"></div>
+      </div>
+    </div>
+
+    <div class="settings-section">
+      <div class="settings-section-hdr">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+        Data Management
+      </div>
+      <div class="settings-row">
+        <div class="settings-row-info"><div class="settings-row-label">Clear Saved Scenarios</div><div class="settings-row-desc">Remove all locally saved scenarios</div></div>
+        <button class="btn btn-outline" style="font-size:12px;padding:6px 14px" onclick="clearScenarios()">Clear All</button>
+      </div>
+      <div class="settings-row">
+        <div class="settings-row-info"><div class="settings-row-label">Reset All Settings</div><div class="settings-row-desc">Restore all settings to defaults</div></div>
+        <button class="btn btn-outline" style="font-size:12px;padding:6px 14px" onclick="resetSettings()">Reset Defaults</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ PAGE: HELP ══ -->
+  <div class="page" id="page-help">
+    <div class="page-hdr" style="margin-bottom:16px"><h2>Help &amp; Documentation</h2><p>Reference guide for the material balance calculator</p></div>
+    <div class="help-grid">
+      <div class="help-nav">
+        <div class="help-nav-item active" onclick="showHelpSection('overview')"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg> <span>Overview</span></div>
+        <div class="help-nav-item" onclick="showHelpSection('equation')"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="19" y1="5" x2="5" y2="19"/><circle cx="6.5" cy="6.5" r="2.5"/><circle cx="17.5" cy="17.5" r="2.5"/></svg> <span>The MBE Equation</span></div>
+        <div class="help-nav-item" onclick="showHelpSection('terms')"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg> <span>Input Terms</span></div>
+        <div class="help-nav-item" onclick="showHelpSection('presets')"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg> <span>Preset Scenarios</span></div>
+        <div class="help-nav-item" onclick="showHelpSection('tips')"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg> <span>Tips &amp; Warnings</span></div>
+      </div>
+      <div class="help-content">
+        <div class="help-section" id="help-overview">
+          <h3>Overview</h3>
+          <p>The Material Balance Equation (MBE) is a fundamental reservoir engineering tool used to estimate Original Oil In Place (OOIP) and understand reservoir drive mechanisms. It is derived from the law of conservation of mass.</p>
+          <p>This calculator implements the general Havlena-Odeh form of the MBE, which accounts for oil expansion, gas cap expansion, connate water and rock compressibility, and water influx simultaneously.</p>
+          <div class="tip-box">Use the preset scenarios in the sidebar to quickly load common reservoir configurations and see how each drive mechanism affects the result.</div>
+        </div>
+        <div class="help-section" id="help-equation" style="display:none">
+          <h3>The General Material Balance Equation</h3>
+          <p>The equation solved for N (OOIP) takes the form:</p>
+          <div style="background:var(--g50);border:1px solid var(--g200);border-radius:6px;padding:14px;font-family:'Courier New',monospace;font-size:11px;line-height:2;margin:10px 0;text-align:center">
+            N = [Np·(Bt + (Rp−Rsi)·Bg) − (We − Wp·Bw)]<br>
+            / [(Bt−Bi) + m·Bi·(Bg/Bgi−1) + Bi·(1+m)·((Swi·cw+cf)/(1−Swi))·Δp]
+          </div>
+          <p>The numerator represents total underground withdrawal. The denominator represents total reservoir expansion from all active drive mechanisms.</p>
+        </div>
+        <div class="help-section" id="help-terms" style="display:none">
+          <h3>Input Terms Reference</h3>
+          <table class="help-term-table">
+            <thead><tr><th>Symbol</th><th>Name</th><th>Typical Unit</th><th>Description</th></tr></thead>
+            <tbody>
+              <tr><td>Np</td><td>Cumulative Oil Production</td><td>STB</td><td>Total oil produced from reservoir at surface conditions</td></tr>
+              <tr><td>Bt</td><td>Two-Phase FVF</td><td>rb/STB</td><td>Combined oil + dissolved gas at current pressure</td></tr>
+              <tr><td>Bi</td><td>Initial Oil FVF</td><td>rb/STB</td><td>Oil formation volume factor at initial reservoir pressure</td></tr>
+              <tr><td>Rp</td><td>Producing GOR</td><td>scf/STB</td><td>Cumulative gas-oil ratio at surface</td></tr>
+              <tr><td>Rsi</td><td>Initial Solution GOR</td><td>scf/STB</td><td>Gas dissolved in oil at initial pressure</td></tr>
+              <tr><td>Bg</td><td>Gas FVF</td><td>rb/scf</td><td>Gas formation volume factor at current pressure</td></tr>
+              <tr><td>Bgi</td><td>Initial Gas FVF</td><td>rb/scf</td><td>Gas formation volume factor at initial pressure</td></tr>
+              <tr><td>We</td><td>Water Influx</td><td>STB</td><td>Cumulative water encroachment from aquifer</td></tr>
+              <tr><td>Wp</td><td>Water Production</td><td>STB</td><td>Cumulative produced water at surface</td></tr>
+              <tr><td>Bw</td><td>Water FVF</td><td>rb/STB</td><td>Water formation volume factor (≈1.02–1.06)</td></tr>
+              <tr><td>m</td><td>Gas Cap Ratio</td><td>dimensionless</td><td>Ratio of initial gas cap to oil zone volume</td></tr>
+              <tr><td>Swi</td><td>Initial Water Saturation</td><td>fraction</td><td>Connate water saturation (typically 0.15–0.35)</td></tr>
+              <tr><td>cw</td><td>Water Compressibility</td><td>1/psi</td><td>Typically 3×10⁻⁶ psi⁻¹</td></tr>
+              <tr><td>cf</td><td>Formation Compressibility</td><td>1/psi</td><td>Rock pore volume compressibility</td></tr>
+              <tr><td>Δp</td><td>Pressure Decline</td><td>psi</td><td>Initial pressure minus current average pressure</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="help-section" id="help-presets" style="display:none">
+          <h3>Preset Scenarios</h3>
+          <p><strong>Volumetric Reservoir:</strong> No water influx (We = 0) and no gas cap (m = 0). Depletion drive only. Oil expansion and compressibility are the sole drive mechanisms.</p>
+          <p><strong>Water Drive:</strong> Active aquifer support. We is significant relative to production. Gas cap is absent or negligible. Common in edge-water and bottom-water reservoirs.</p>
+          <p><strong>Gas Cap Drive:</strong> Gas cap present (m &gt; 0) with or without water influx. Gas expansion is the primary or secondary drive. Gas cap shrinks as pressure declines.</p>
+          <p><strong>Custom:</strong> All parameters configurable. Use this to model complex reservoirs with multiple simultaneous drive mechanisms.</p>
+        </div>
+        <div class="help-section" id="help-tips" style="display:none">
+          <h3>Tips &amp; Common Warnings</h3>
+          <p><strong>Negative N result:</strong> Indicates inconsistency in inputs — often caused by Rp &lt; Rsi, incorrect Bt values, or We much larger than withdrawals.</p>
+          <p><strong>Division by zero:</strong> The denominator approaches zero when all expansion terms cancel. Check that Bt &gt; Bi and that at least one drive mechanism is active.</p>
+          <p><strong>R_p &lt; R_si warning:</strong> Producing GOR below initial solution GOR is physically unusual in depletion. Verify your pressure data and PVT tables.</p>
+          <p><strong>Swi range:</strong> Connate water saturation should be between 0.10 and 0.40 for most conventional reservoirs. Values outside this range trigger a warning.</p>
+          <div class="tip-box">Always cross-check MBE results against volumetric estimates. Large discrepancies may indicate undetected aquifer support or compartmentalization.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ PAGE: ABOUT ══ -->
+  <div class="page" id="page-about">
+    <div class="about-hero">
+      <h2>Material Balance Calculator</h2>
+      <p>A professional reservoir engineering tool for computing Original Oil In Place using the general material balance equation.</p>
+      <div class="about-version">Version 2.0.0</div>
+    </div>
+    <div class="about-grid">
+      <div class="about-card">
+        <h3><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg> Key Features</h3>
+        <ul>
+          <li>General Havlena-Odeh MBE formulation</li>
+          <li>Supports all major drive mechanisms</li>
+          <li>Toggle water, gas cap, compressibility terms</li>
+          <li>Four built-in preset scenarios</li>
+          <li>Volumetric &amp; ratio quick calculators</li>
+          <li>Field and SI unit systems</li>
+          <li>Real-time input validation</li>
+          <li>Step-by-step calculation breakdown</li>
+        </ul>
+      </div>
+      <div class="about-card">
+        <h3><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 3H5a2 2 0 00-2 2v4m6-6h10a2 2 0 012 2v4M9 3v18m0 0h10a2 2 0 002-2V9M9 21H5a2 2 0 01-2-2V9m0 0h18"/></svg> Methodology</h3>
+        <p>Based on the general MBE as presented in reservoir engineering literature. Accounts for:</p>
+        <ul>
+          <li>Oil and dissolved gas expansion</li>
+          <li>Free gas cap expansion</li>
+          <li>Connate water expansion</li>
+          <li>Rock pore volume compressibility</li>
+          <li>Natural water influx</li>
+          <li>Produced water withdrawal</li>
+        </ul>
+      </div>
+      <div class="about-card">
+        <h3><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg> Built With</h3>
+        <div class="about-badges">
+          <span class="about-badge"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg> Vanilla JS</span>
+          <span class="about-badge">HTML5</span>
+          <span class="about-badge">CSS3</span>
+          <span class="about-badge">Google Sans</span>
+          <span class="about-badge">Lucide Icons</span>
+          <span class="about-badge">No dependencies</span>
+        </div>
+        <p style="margin-top:10px">Fully self-contained single HTML file. No build tools, no frameworks, no external dependencies beyond Google Fonts.</p>
+      </div>
+      <div class="about-card">
+        <h3><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg> Disclaimer</h3>
+        <p>This tool is intended for educational and preliminary engineering purposes. Results should always be validated against full reservoir simulation models and peer-reviewed by a qualified reservoir engineer before use in field decisions.</p>
+        <p>Input data quality directly controls result accuracy. Always verify PVT data and production records.</p>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<script>
+// ═══════════════════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════════════════
+const state = { water:true, gasscap:true, compress:true, convert:false, stepsOpen:false,
+                autocalc:false, showsteps:false, highlight:true };
+
+// ═══════════════════════════════════════════════════════════
+// NAVIGATION
+// ═══════════════════════════════════════════════════════════
+const pageMeta = {
+  dashboard:  { title:'Material Balance Equation Calculator', sub:'Calculate Original Oil In Place (N) using the general material balance equation', actions:true },
+  calculator: { title:'Quick Calculator', sub:'Focused calculations and parameter estimation', actions:false },
+  saved:      { title:'Saved Scenarios', sub:'Load and manage previously calculated reservoir scenarios', actions:false },
+  converter:  { title:'Unit Converter', sub:'Convert between oilfield and SI units', actions:false },
+  settings:   { title:'Settings', sub:'Configure calculator behavior and display preferences', actions:false },
+  help:       { title:'Help & Documentation', sub:'Reference guide for the material balance calculator', actions:false },
+  about:      { title:'About', sub:'Material Balance Calculator v2.0.0', actions:false },
+};
+
+document.querySelectorAll('.nav-item[data-page]').forEach(el => {
+  el.addEventListener('click', () => navigateTo(el.dataset.page));
+});
+
+function navigateTo(page) {
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.toggle('active', n.dataset.page === page));
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('page-' + page).classList.add('active');
+  const m = pageMeta[page] || {};
+  document.getElementById('page-title').textContent = m.title || '';
+  document.getElementById('page-subtitle').textContent = m.sub || '';
+  document.getElementById('topbar-actions').style.display = m.actions ? '' : 'none';
+  
+  // hide presets on non-dashboard
+  document.getElementById('presets').style.opacity = page === 'dashboard' ? '1' : '.5';
+  document.getElementById('presets').style.pointerEvents = page === 'dashboard' ? '' : 'none';
+}
+
+// ═══════════════════════════════════════════════════════════
+// PRESETS
+// ═══════════════════════════════════════════════════════════
+const presets = {
+  volumetric: {Np:12500,Bt:1.25,Bi:1.3,Rp:850,Rsi:900,Bg:0.0045,Bgi:0.005,We:0,Wp:0,Bw:1.02,m:0,Swi:0.25,cw:3e-6,cf:1e-6,dp:1500,water:false,gasscap:false,compress:true},
+  water_drive:{Np:15000,Bt:1.30,Bi:1.32,Rp:820,Rsi:850,Bg:0.0046,Bgi:0.005,We:30000,Wp:10000,Bw:1.02,m:0,Swi:0.25,cw:3e-6,cf:1e-6,dp:1200,water:true,gasscap:false,compress:false},
+  gas_cap:    {Np:12500,Bt:1.25,Bi:1.3,Rp:850,Rsi:900,Bg:0.0045,Bgi:0.005,We:25000,Wp:8000,Bw:1.02,m:0.35,Swi:0.25,cw:3e-6,cf:1e-6,dp:1500,water:true,gasscap:true,compress:true},
+  custom:     {Np:12500,Bt:1.25,Bi:1.3,Rp:850,Rsi:900,Bg:0.0045,Bgi:0.005,We:25000,Wp:8000,Bw:1.02,m:0.35,Swi:0.25,cw:3e-6,cf:1e-6,dp:1500,water:true,gasscap:true,compress:true},
+};
+
+function applyPreset(name) {
+  const p = presets[name]; if (!p) return;
+  ['Np','Bt','Bi','Rp','Rsi','Bg','Bgi','We','Wp','Bw','m','Swi','cw','cf','dp'].forEach(k => {
+    const el = document.getElementById(k); if (el) el.value = p[k];
+  });
+  if (state.water !== p.water) toggleFeature('water');
+  if (state.gasscap !== p.gasscap) toggleFeature('gasscap');
+  if (state.compress !== p.compress) toggleFeature('compress');
+  document.querySelectorAll('.preset-item').forEach(el => el.classList.toggle('active', el.dataset.preset === name));
+  calculate();
+}
+
+document.querySelectorAll('.preset-item[data-preset]').forEach(el => {
+  el.addEventListener('click', () => { navigateTo('dashboard'); applyPreset(el.dataset.preset); });
+});
+
+// ═══════════════════════════════════════════════════════════
+// TOGGLES
+// ═══════════════════════════════════════════════════════════
+function toggleFeature(key) {
+  state[key] = !state[key];
+  const t = document.getElementById('toggle_' + key);
+  if (t) t.classList.toggle('on', state[key]);
+  if (key === 'water') { const s = document.getElementById('water_section'); if (s) s.style.opacity = state.water ? '1' : '0.4'; }
+  if (key === 'gasscap') { const g = document.getElementById('m_group'); if (g) g.style.opacity = state.gasscap ? '1' : '0.4'; }
+  if (key === 'compress') { ['cw_group','cf_group'].forEach(id => { const g = document.getElementById(id); if (g) g.style.opacity = state.compress ? '1' : '0.4'; }); }
+  updateFormula();
+}
+
+function toggleSetting(key) {
+  state[key] = !state[key];
+  const t = document.getElementById('toggle_' + key);
+  if (t) t.classList.toggle('on', state[key]);
+}
+
+// ═══════════════════════════════════════════════════════════
+// FORMULA
+// ═══════════════════════════════════════════════════════════
+function updateFormula() {
+  const box = document.getElementById('formula_box');
+  if (!box) return;
+  let lines = ['N = [Np·(Bt + (Rp−Rsi)·Bg)'];
+  lines.push(state.water ? '    − (We − Wp·Bw)]' : '  ]');
+  lines.push('  / [(Bt−Bi)');
+  if (state.gasscap) lines.push('  + m·Bi·(Bg/Bgi − 1)');
+  if (state.compress) lines.push('  + Bi·(1+m)·((Swi·cw+cf)/(1−Swi))·Δp');
+  lines.push('  ]');
+  box.innerHTML = lines.map(l => `<div class="formula-line">${l}</div>`).join('');
+}
+
+function updateUnits() {
+  const s = document.getElementById('unit_system').value;
+  document.getElementById('base_units_display').textContent = s === 'field' ? 'STB, rb, scf, psi' : 'm³, m³, m³, kPa';
+}
+
+// ═══════════════════════════════════════════════════════════
+// DASHBOARD CALCULATE
+// ═══════════════════════════════════════════════════════════
+function getVal(id) { return parseFloat(document.getElementById(id).value) || 0; }
+
+function calculate() {
+  const Np=getVal('Np'), Bt=getVal('Bt'), Bi=getVal('Bi'), Rp=getVal('Rp'), Rsi=getVal('Rsi');
+  const Bg=getVal('Bg'), Bgi=getVal('Bgi');
+  const We=state.water?getVal('We'):0, Wp=state.water?getVal('Wp'):0, Bw=state.water?getVal('Bw'):1;
+  const m=state.gasscap?getVal('m'):0, Swi=getVal('Swi');
+  const cw=state.compress?getVal('cw'):0, cf=state.compress?getVal('cf'):0, dp=getVal('dp');
+
+  const warns = []; let valid = true;
+  if (Np<=0){warns.push({t:'err',msg:'Np must be > 0'});valid=false;}
+  if (Bi<=0||Bt<=0){warns.push({t:'err',msg:'Formation volume factors must be > 0'});valid=false;}
+  if (Bgi<=0){warns.push({t:'err',msg:'Bgi must be > 0'});valid=false;}
+  if (Swi<=0||Swi>=1) warns.push({t:'warn',msg:'Swi should be between 0 and 1'});
+  if (Rp<Rsi) warns.push({t:'warn',msg:'Rp < Rsi: unusual for depletion drive'});
+
+  const prodTerm = Np*(Bt+(Rp-Rsi)*Bg);
+  const waterTerm = We-Wp*Bw;
+  const numerator = prodTerm - waterTerm;
+  const expTerm = Bt-Bi;
+  const gcTerm = state.gasscap ? m*Bi*((Bg/Bgi)-1) : 0;
+  const cmpTerm = state.compress ? Bi*(1+m)*((Swi*cw+cf)/(1-Swi))*dp : 0;
+  const denom = expTerm+gcTerm+cmpTerm;
+
+  if (Math.abs(denom)<1e-12){warns.push({t:'err',msg:'Division by zero: denominator ≈ 0'});setResult(null);setWarnings(warns);return;}
+  const N = numerator/denom;
+  if (!valid){setResult(null);setWarnings(warns);return;}
+  if (N<0) warns.push({t:'warn',msg:'Negative N — check input consistency'});
+  if (warns.length===0){
+    warns.push({t:'ok',msg:'All required inputs are provided.'});
+    warns.push({t:'ok',msg:'Units are consistent.'});
+    warns.push({t:'ok',msg:'No division by zero detected.'});
+  }
+  setResult(N);setWarnings(warns);
+  buildSummary({prodTerm,waterTerm,expTerm,gcTerm,cmpTerm,numerator,denom,N});
+  buildSteps({Np,Bt,Rp,Rsi,Bg,Bi,Bgi,We,Wp,Bw,m,Swi,cw,cf,dp,prodTerm,waterTerm,expTerm,gcTerm,cmpTerm,numerator,denom,N});
+  saveToScenarios(N);
+}
+
+function setResult(val) {
+  const el = document.getElementById('result_value');
+  el.textContent = val===null||isNaN(val) ? 'Error' : val.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+  el.style.fontSize = val===null ? '26px' : '36px';
+}
+
+function setWarnings(arr) {
+  document.getElementById('warnings_body').innerHTML = arr.map(w => {
+    const cls = w.t==='ok'?'wi-ok':w.t==='warn'?'wi-warn':'wi-err';
+    const icon = w.t==='ok'
+      ? '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>'
+      : w.t==='warn'
+      ? '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>'
+      : '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>';
+    return `<div class="warning-item"><span class="${cls}">${icon}</span>${w.msg}</div>`;
+  }).join('');
+}
+
+function buildSummary({prodTerm,waterTerm,expTerm,gcTerm,cmpTerm,numerator,denom,N}){
+  const rows=[['Np[Bt+(Rp-Rsi)Bg]','Oil production + solution gas',prodTerm.toFixed(2),'rb'],
+    ['(We − Wp·Bw)','Water term',waterTerm.toFixed(2),'rb'],
+    ['(Bt − Bi)','Formation FVF expansion',expTerm.toFixed(4),'rb/STB']];
+  if(state.gasscap) rows.push(['m·Bi·(Bg/Bgi−1)','Gas cap expansion',gcTerm.toFixed(6),'rb/STB']);
+  if(state.compress) rows.push(['Bi(1+m)(Swi·cw+cf)/(1−Swi)·Δp','Compressibility',cmpTerm.toFixed(8),'rb/STB']);
+  rows.push(['Numerator','Total withdrawal',numerator.toFixed(2),'rb'],
+            ['Denominator','Total expansion',denom.toFixed(6),'rb/STB'],
+            ['N (OOIP)','Original Oil In Place',N.toFixed(2),'STB']);
+  document.getElementById('summary_body').innerHTML = rows.map(r=>
+    `<tr><td>${r[0]}</td><td>${r[1]}</td><td>${r[2]}</td><td>${r[3]}</td></tr>`).join('');
+}
+
+function buildSteps(d){
+  const steps=[
+    {term:'Production Term',val:`Np×(Bt+(Rp−Rsi)·Bg) = ${d.prodTerm.toFixed(2)} rb`},
+    {term:'Water Term',val:`We−Wp×Bw = ${d.waterTerm.toFixed(2)} rb`},
+    {term:'Numerator',val:`${d.numerator.toFixed(2)} rb`},
+    {term:'Expansion (Bt−Bi)',val:`${d.expTerm.toFixed(6)} rb/STB`},
+    {term:'Gas Cap Term',val:state.gasscap?`${d.gcTerm.toFixed(6)} rb/STB`:'Not included'},
+    {term:'Compress. Term',val:state.compress?`${d.cmpTerm.toFixed(8)} rb/STB`:'Not included'},
+    {term:'Denominator',val:`${d.denom.toFixed(6)} rb/STB`},
+    {term:'N = Num / Den',val:`${d.N.toFixed(2)} STB`},
+  ];
+  document.getElementById('steps_content').innerHTML = steps.map(s=>
+    `<div class="step-row"><span class="step-term">${s.term}</span><span class="step-val">${s.val}</span></div>`).join('');
+}
+
+function toggleSteps(){
+  state.stepsOpen=!state.stepsOpen;
+  document.getElementById('steps_content').classList.toggle('open',state.stepsOpen);
+  const arr = document.getElementById('steps_arrow');
+  arr.innerHTML = state.stepsOpen
+    ? '<polyline points="18 15 12 9 6 15"/>'
+    : '<polyline points="6 9 12 15 18 9"/>';
+}
+
+// ═══════════════════════════════════════════════════════════
+// RESET / NEW
+// ═══════════════════════════════════════════════════════════
+function resetAll(){ applyPreset('gas_cap'); }
+function newScenario(){
+  navigateTo('dashboard');
+  ['Np','Bt','Bi','Rp','Rsi','Bg','Bgi','We','Wp','Bw','m','Swi','cw','cf','dp'].forEach(k=>{
+    const el=document.getElementById(k);if(el)el.value='';
+  });
+  document.getElementById('result_value').textContent='—';
+  document.getElementById('summary_body').innerHTML='<tr><td colspan="4" style="text-align:center;color:var(--g500);padding:16px 12px;font-size:12px">Fill inputs and click Calculate</td></tr>';
+  document.getElementById('warnings_body').innerHTML='<div class="warning-item"><span class="wi-warn"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></span> Enter values and click Calculate.</div>';
+  document.querySelectorAll('.preset-item').forEach(el=>el.classList.toggle('active',el.dataset.preset==='custom'));
+}
+
+// ═══════════════════════════════════════════════════════════
+// SAVED SCENARIOS
+// ═══════════════════════════════════════════════════════════
+let savedScenarios = [
+  {id:'s1',name:'Volumetric Reservoir',desc:'Depletion drive, no water or gas cap',badge:'accent',N:45230.18,tags:['Volumetric','No gas cap','No water'],preset:'volumetric'},
+  {id:'s2',name:'Water Drive Field',desc:'Strong aquifer support',badge:'teal',N:112847.55,tags:['Water drive','We > 0'],preset:'water_drive'},
+  {id:'s3',name:'Gas Cap Example',desc:'Gas cap + water influx',badge:'orange',N:88752.61,tags:['Gas cap','Water','Full model'],preset:'gas_cap'},
+];
+
+function saveToScenarios(N){
+  // auto-update "Gas Cap Example" if preset active
+}
+
+function renderScenarios(){
+  const grid = document.getElementById('scenario_grid');
+  if(!grid) return;
+  if(savedScenarios.length===0){
+    grid.innerHTML='<div style="grid-column:1/-1;text-align:center;color:var(--g500);padding:40px;font-size:13px">No saved scenarios yet. Run a calculation and save it.</div>';
+    return;
+  }
+  grid.innerHTML = savedScenarios.map(s=>`
+    <div class="scenario-card">
+      <div class="sc-header">
+        <div class="sc-badge ${s.badge}">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="${s.badge==='accent'?'#d60000':s.badge==='teal'?'#1e8e3e':s.badge==='orange'?'#e37400':'#8430ce'}" stroke-width="2"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+        </div>
+        <div><div class="sc-name">${s.name}</div><div class="sc-desc">${s.desc}</div></div>
+      </div>
+      <div class="sc-nlabel">Original Oil In Place (N)</div>
+      <div class="sc-n">${s.N.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})}</div>
+      <div class="sc-meta">${s.tags.map(t=>`<span class="sc-tag">${t}</span>`).join('')}</div>
+      <div class="sc-actions">
+        <button class="sc-btn primary" onclick="loadScenario('${s.id}')">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 102.13-9.36L1 10"/></svg> Load
+        </button>
+        <button class="sc-btn" onclick="deleteScenario('${s.id}')">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg> Delete
+        </button>
+      </div>
+    </div>`).join('');
+}
+
+function loadScenario(id){
+  const s = savedScenarios.find(x=>x.id===id);
+  if(!s) return;
+  if(s.preset) applyPreset(s.preset);
+  navigateTo('dashboard');
+}
+
+function deleteScenario(id){
+  savedScenarios = savedScenarios.filter(x=>x.id!==id);
+  renderScenarios();
+}
+
+function clearScenarios(){ savedScenarios=[]; renderScenarios(); }
+
+// ═══════════════════════════════════════════════════════════
+// UNIT CONVERTER
+// ═══════════════════════════════════════════════════════════
+const ucFactors = {
+  vol: { STB:0.158987, bbl:0.158987, 'm³':1, 'ft³':0.0283168, L:0.001 },
+  pres: { psi:6894.76, kPa:1000, MPa:1e6, bar:100000, atm:101325 },
+  len: { ft:0.3048, m:1, 'in':0.0254, cm:0.01, km:1000 },
+};
+
+function convertUnit(type){
+  if(type==='temp'){ convertTemp(); return; }
+  const val=parseFloat(document.getElementById(`uc_${type}_val`).value)||0;
+  const from=document.getElementById(`uc_${type}_from`).value;
+  const to=document.getElementById(`uc_${type}_to`).value;
+  const f=ucFactors[type];
+  const result=val*(f[from]||1)/(f[to]||1);
+  document.getElementById(`uc_${type}_result`).textContent=result.toPrecision(6)+' '+to;
+}
+
+function convertTemp(){
+  const val=parseFloat(document.getElementById('uc_temp_val').value)||0;
+  const from=document.getElementById('uc_temp_from').value;
+  const to=document.getElementById('uc_temp_to').value;
+  let c;
+  if(from==='°F') c=(val-32)/1.8;
+  else if(from==='K') c=val-273.15;
+  else if(from==='°R') c=(val-491.67)/1.8;
+  else c=val;
+  let result;
+  if(to==='°F') result=c*1.8+32;
+  else if(to==='K') result=c+273.15;
+  else if(to==='°R') result=(c+273.15)*1.8;
+  else result=c;
+  document.getElementById('uc_temp_result').textContent=result.toFixed(4)+' '+to;
+}
+
+// init converters
+['vol','pres','len','temp'].forEach(t=>{ try{ convertUnit(t); }catch(e){} });
+
+// ═══════════════════════════════════════════════════════════
+// QUICK CALCULATOR
+// ═══════════════════════════════════════════════════════════
+function calcVolumetric(){
+  const A=parseFloat(document.getElementById('vc_A').value)||0;
+  const h=parseFloat(document.getElementById('vc_h').value)||0;
+  const phi=parseFloat(document.getElementById('vc_phi').value)||0;
+  const Swi=parseFloat(document.getElementById('vc_Swi').value)||0;
+  const Boi=parseFloat(document.getElementById('vc_Boi').value)||1;
+  const N=Boi>0 ? 7758*A*h*phi*(1-Swi)/Boi : 0;
+  document.getElementById('vc_result').textContent=N.toLocaleString('en-US',{minimumFractionDigits:0,maximumFractionDigits:0});
+}
+
+function calcRF(){
+  const Np=parseFloat(document.getElementById('rf_Np').value)||0;
+  const N=parseFloat(document.getElementById('rf_N').value)||1;
+  document.getElementById('rf_result').textContent=(Np/N*100).toFixed(2)+'%';
+}
+
+function calcRatios(){
+  const gas=parseFloat(document.getElementById('pr_gas').value)||0;
+  const oil=parseFloat(document.getElementById('pr_oil').value)||1;
+  const water=parseFloat(document.getElementById('pr_water').value)||0;
+  document.getElementById('gor_result').textContent=(gas/oil).toFixed(0);
+  document.getElementById('wor_result').textContent=(water/oil).toFixed(3);
+}
+
+// ═══════════════════════════════════════════════════════════
+// HELP NAVIGATION
+// ═══════════════════════════════════════════════════════════
+function showHelpSection(id){
+  document.querySelectorAll('.help-nav-item').forEach(el=>el.classList.toggle('active',el.getAttribute('onclick').includes(id)));
+  ['overview','equation','terms','presets','tips'].forEach(s=>{
+    const el=document.getElementById('help-'+s);
+    if(el) el.style.display=s===id?'block':'none';
+  });
+}
+
+// ═══════════════════════════════════════════════════════════
+// SETTINGS
+// ═══════════════════════════════════════════════════════════
+function resetSettings(){
+  document.getElementById('sett_units').selectedIndex=0;
+  document.getElementById('sett_precision').selectedIndex=0;
+  document.getElementById('sett_numfmt').selectedIndex=0;
+  document.getElementById('sett_sci_thresh').value='1000000';
+  ['autocalc','showsteps'].forEach(k=>{ if(state[k]){state[k]=false;document.getElementById('toggle_'+k).classList.remove('on');} });
+  if(!state.highlight){state.highlight=true;document.getElementById('toggle_highlight').classList.add('on');}
+}
+
+// ═══════════════════════════════════════════════════════════
+// SIDEBAR TOGGLE
+// ═══════════════════════════════════════════════════════════
+function toggleSidebar() {
+  document.body.classList.toggle('collapsed');
+}
+
+// ═══════════════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════════════
+updateFormula();
+calculate();
+calcVolumetric();
+calcRF();
+calcRatios();
+renderScenarios();
+</script>
+</body>
+</html>
