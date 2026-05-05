@@ -582,19 +582,23 @@ hr.div { border: none; border-top: 1px solid var(--g200); margin: 4px 0; }
               <div class="input-row"><input class="form-input" type="number" id="Np" value="12500"><select class="form-select"><option>STB</option></select></div>
             </div>
             <div class="form-group">
-              <div class="form-label">B<sub>t</sub> <span class="ln">(Total Formation Vol. Factor)</span></div>
-              <div class="input-row"><input class="form-input" type="number" id="Bt" value="1.250"><select class="form-select"><option>rb/STB</option></select></div>
+              <div class="form-label">B<sub>o</sub> <span class="ln">(Oil Formation Vol. Factor)</span></div>
+              <div class="input-row"><input class="form-input" type="number" id="Bo" value="1.250"><select class="form-select"><option>rb/STB</option></select></div>
             </div>
             <div class="form-group">
-              <div class="form-label">B<sub>i</sub> <span class="ln">(Initial Formation Vol. Factor)</span></div>
-              <div class="input-row"><input class="form-input" type="number" id="Bi" value="1.300"><select class="form-select"><option>rb/STB</option></select></div>
+              <div class="form-label">B<sub>oi</sub> <span class="ln">(Initial Oil Formation Vol. Factor)</span></div>
+              <div class="input-row"><input class="form-input" type="number" id="Boi" value="1.300"><select class="form-select"><option>rb/STB</option></select></div>
             </div>
             <div class="form-group">
-              <div class="form-label">R<sub>p</sub> <span class="ln">(Gas-Oil Ratio)</span></div>
+              <div class="form-label">R<sub>p</sub> <span class="ln">(Cumulative Producing GOR)</span></div>
               <div class="input-row"><input class="form-input" type="number" id="Rp" value="850"><select class="form-select"><option>scf/STB</option></select></div>
             </div>
             <div class="form-group">
-              <div class="form-label">R<sub>si</sub> <span class="ln">(Initial Gas-Oil Ratio)</span></div>
+              <div class="form-label">R<sub>s</sub> <span class="ln">(Current Solution GOR)</span></div>
+              <div class="input-row"><input class="form-input" type="number" id="Rs" value="800"><select class="form-select"><option>scf/STB</option></select></div>
+            </div>
+            <div class="form-group">
+              <div class="form-label">R<sub>si</sub> <span class="ln">(Initial Solution GOR)</span></div>
               <div class="input-row"><input class="form-input" type="number" id="Rsi" value="900"><select class="form-select"><option>scf/STB</option></select></div>
             </div>
             <div class="form-group">
@@ -605,6 +609,13 @@ hr.div { border: none; border-top: 1px solid var(--g200); margin: 4px 0; }
               <div class="form-label">B<sub>gi</sub> <span class="ln">(Initial Gas Formation Vol. Factor)</span></div>
               <div class="input-row"><input class="form-input" type="number" id="Bgi" value="0.00500"><select class="form-select"><option>rb/scf</option></select></div>
             </div>
+          </div>
+          <!-- Computed Bt display -->
+          <div style="margin-top:10px;padding:8px 10px;background:var(--g50);border:1px solid var(--g200);border-radius:6px;font-size:11px;color:var(--g700)">
+            <span style="font-weight:600">Computed:</span>
+            <span style="font-family:'Courier New',monospace;margin-left:6px">B<sub>t</sub> = B<sub>o</sub> + (R<sub>si</sub> − R<sub>s</sub>)·B<sub>g</sub> = <span id="Bt_display" style="color:var(--accent);font-weight:700">—</span> rb/STB</span>
+            &nbsp;|&nbsp;
+            <span style="font-family:'Courier New',monospace">B<sub>ti</sub> = B<sub>oi</sub> = <span id="Bti_display" style="color:var(--accent);font-weight:700">—</span> rb/STB</span>
           </div>
         </div>
       </div>
@@ -675,8 +686,37 @@ hr.div { border: none; border-top: 1px solid var(--g200); margin: 4px 0; }
         <div class="card-body">
           <div class="form-grid">
             <div class="form-group">
-              <div class="form-label">&Delta;p <span class="ln">(Pressure Change)</span></div>
+              <div class="form-label">&Delta;p <span class="ln">(Pressure Change p<sub>i</sub> − p)</span></div>
               <div class="input-row"><input class="form-input" type="number" id="dp" value="1500"><select class="form-select"><option>psi</option></select></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- E. Injection Terms -->
+      <div class="card">
+        <div class="card-header">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="12 5 12 19"/><polyline points="5 12 12 5 19 12"/></svg>
+          <span class="card-header-text">E. Injection Terms</span>
+          <div class="card-header-toggle">Include Injection <div class="toggle" id="toggle_inject" onclick="toggleFeature('inject')"></div></div>
+        </div>
+        <div class="card-body" id="inject_section" style="opacity:0.4;pointer-events:none">
+          <div class="form-grid">
+            <div class="form-group">
+              <div class="form-label">G<sub>inj</sub> <span class="ln">(Cumulative Gas Injected)</span></div>
+              <div class="input-row"><input class="form-input" type="number" id="Ginj" value="0"><select class="form-select"><option>scf</option></select></div>
+            </div>
+            <div class="form-group">
+              <div class="form-label">B<sub>ginj</sub> <span class="ln">(Injected Gas FVF)</span></div>
+              <div class="input-row"><input class="form-input" type="number" id="Bginj" value="0.004"><select class="form-select"><option>rb/scf</option></select></div>
+            </div>
+            <div class="form-group">
+              <div class="form-label">W<sub>inj</sub> <span class="ln">(Cumulative Water Injected)</span></div>
+              <div class="input-row"><input class="form-input" type="number" id="Winj" value="0"><select class="form-select"><option>STB</option></select></div>
+            </div>
+            <div class="form-group">
+              <div class="form-label">B<sub>winj</sub> <span class="ln">(Injected Water FVF)</span></div>
+              <div class="input-row"><input class="form-input" type="number" id="Bwinj" value="1.0"><select class="form-select"><option>rb/STB</option></select></div>
             </div>
           </div>
         </div>
@@ -743,6 +783,17 @@ hr.div { border: none; border-top: 1px solid var(--g200); margin: 4px 0; }
         </div>
         <div class="warnings-body" id="warnings_body">
           <div class="warning-item"><span class="wi-warn"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></span> Click Calculate to validate inputs.</div>
+        </div>
+      </div>
+      <!-- Drive Index -->
+      <div class="card" id="drive_index_card" style="display:none">
+        <div class="card-header">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="8 12 12 16 16 12"/><line x1="12" y1="8" x2="12" y2="16"/></svg>
+          <span class="card-header-text">Drive Indices (DDI+SDI+WDI+EDI = 1)</span>
+        </div>
+        <div class="card-body" style="padding:10px 14px">
+          <div id="drive_bars"></div>
+          <div style="margin-top:8px;font-size:10px;color:var(--g500)">DDI = Depletion Drive &nbsp;|&nbsp; SDI = Gas Cap Drive &nbsp;|&nbsp; WDI = Water Drive &nbsp;|&nbsp; EDI = Rock/Fluid Expansion</div>
         </div>
       </div>
     </div><!-- end right-col -->
@@ -971,27 +1022,41 @@ hr.div { border: none; border-top: 1px solid var(--g200); margin: 4px 0; }
         </div>
         <div class="help-section" id="help-equation" style="display:none">
           <h3>The General Material Balance Equation</h3>
-          <p>The equation solved for N (OOIP) takes the form:</p>
+          <p>The equation solved for N (OOIP) — exactly as derived from the PDF:</p>
           <div style="background:var(--g50);border:1px solid var(--g200);border-radius:6px;padding:14px;font-family:'Courier New',monospace;font-size:11px;line-height:2;margin:10px 0;text-align:center">
-            N = [Np·(Bt + (Rp−Rsi)·Bg) − (We − Wp·Bw)]<br>
-            / [(Bt−Bi) + m·Bi·(Bg/Bgi−1) + Bi·(1+m)·((Swi·cw+cf)/(1−Swi))·Δp]
+            N = [Np·(Bo + (Rp−Rs)·Bg) − (We − Wp·Bw) − Ginj·Bginj − Winj·Bwinj]<br>
+            / [(Bo−Boi) + (Rsi−Rs)·Bg + m·Boi·(Bg/Bgi−1) + Boi·(1+m)·((Swi·cw+cf)/(1−Swi))·Δp]
           </div>
-          <p>The numerator represents total underground withdrawal. The denominator represents total reservoir expansion from all active drive mechanisms.</p>
+          <p style="font-size:12px;margin-top:8px">Note: Bt = Bo + (Rsi−Rs)·Bg is computed internally. The denominator terms represent: (1) dissolved gas + oil expansion, (2) gas cap expansion, (3) connate water and rock expansion.</p>
+          <p style="font-size:12px;margin-top:8px"><strong>Drive Indices</strong> — With A = Np[Bt + (Rp−Rsi)·Bg]:<br>
+          DDI = N(Bt−Bti)/A &nbsp;|&nbsp; SDI = N·m·Bti·(Bg/Bgi−1)/A &nbsp;|&nbsp; WDI = (We−WpBw)/A &nbsp;|&nbsp; EDI = N·Boi(1+m)[(cwSwi+cf)/(1−Swi)]·Δp/A<br>
+          DDI + SDI + WDI + EDI = 1.0</p>
         </div>
         <div class="help-section" id="help-terms" style="display:none">
           <h3>Input Terms Reference</h3>
           <table class="help-term-table">
             <thead><tr><th>Symbol</th><th>Name</th><th>Typical Unit</th><th>Description</th></tr></thead>
             <tbody>
-              <tr><td>Np</td><td>Cumulative Oil Production</td><td>STB</td><td>Total oil produced from reservoir at surface conditions</td></tr>
-              <tr><td>Bt</td><td>Two-Phase FVF</td><td>rb/STB</td><td>Combined oil + dissolved gas at current pressure</td></tr>
-              <tr><td>Bi</td><td>Initial Oil FVF</td><td>rb/STB</td><td>Oil formation volume factor at initial reservoir pressure</td></tr>
-              <tr><td>Rp</td><td>Producing GOR</td><td>scf/STB</td><td>Cumulative gas-oil ratio at surface</td></tr>
-              <tr><td>Rsi</td><td>Initial Solution GOR</td><td>scf/STB</td><td>Gas dissolved in oil at initial pressure</td></tr>
-              <tr><td>Bg</td><td>Gas FVF</td><td>rb/scf</td><td>Gas formation volume factor at current pressure</td></tr>
-              <tr><td>Bgi</td><td>Initial Gas FVF</td><td>rb/scf</td><td>Gas formation volume factor at initial pressure</td></tr>
-              <tr><td>We</td><td>Water Influx</td><td>STB</td><td>Cumulative water encroachment from aquifer</td></tr>
-              <tr><td>Wp</td><td>Water Production</td><td>STB</td><td>Cumulative produced water at surface</td></tr>
+              <tr><td>Np</td><td>Cumulative Oil Production</td><td>STB</td><td>Total oil produced at surface conditions</td></tr>
+              <tr><td>Bo</td><td>Oil FVF at current pressure</td><td>rb/STB</td><td>Oil formation volume factor at reservoir pressure p</td></tr>
+              <tr><td>Boi</td><td>Initial Oil FVF</td><td>rb/STB</td><td>Oil formation volume factor at initial pressure pi</td></tr>
+              <tr><td>Rp</td><td>Cumulative Producing GOR</td><td>scf/STB</td><td>Net cumulative gas-oil ratio at surface</td></tr>
+              <tr><td>Rs</td><td>Current Solution GOR</td><td>scf/STB</td><td>Gas solubility factor at current pressure p</td></tr>
+              <tr><td>Rsi</td><td>Initial Solution GOR</td><td>scf/STB</td><td>Gas solubility factor at initial pressure pi</td></tr>
+              <tr><td>Bg</td><td>Gas FVF at current pressure</td><td>rb/scf</td><td>Gas formation volume factor at p</td></tr>
+              <tr><td>Bgi</td><td>Initial Gas FVF</td><td>rb/scf</td><td>Gas formation volume factor at pi</td></tr>
+              <tr><td>Bt (computed)</td><td>Two-Phase FVF</td><td>rb/STB</td><td>Bt = Bo + (Rsi−Rs)·Bg — computed automatically</td></tr>
+              <tr><td>We</td><td>Water Influx</td><td>bbl</td><td>Cumulative water encroachment from aquifer</td></tr>
+              <tr><td>Wp</td><td>Cumulative Water Production</td><td>STB</td><td>Cumulative produced water</td></tr>
+              <tr><td>Bw</td><td>Water FVF</td><td>rb/STB</td><td>Water formation volume factor</td></tr>
+              <tr><td>m</td><td>Gas Cap Ratio</td><td>bbl/bbl</td><td>GBgi / (N·Boi) — ratio of initial gas cap to oil zone volume</td></tr>
+              <tr><td>Swi</td><td>Initial Water Saturation</td><td>fraction</td><td>Connate water saturation</td></tr>
+              <tr><td>cw</td><td>Water Compressibility</td><td>psi⁻¹</td><td>Isothermal compressibility of connate water</td></tr>
+              <tr><td>cf</td><td>Formation Compressibility</td><td>psi⁻¹</td><td>Rock pore volume compressibility</td></tr>
+              <tr><td>Δp</td><td>Pressure Drop</td><td>psi</td><td>pi − p (initial minus current reservoir pressure)</td></tr>
+              <tr><td>Ginj</td><td>Cumulative Gas Injected</td><td>scf</td><td>Total gas injected for pressure maintenance</td></tr>
+              <tr><td>Winj</td><td>Cumulative Water Injected</td><td>STB</td><td>Total water injected for pressure maintenance</td></tr>
+            </tbody>
               <tr><td>Bw</td><td>Water FVF</td><td>rb/STB</td><td>Water formation volume factor (≈1.02–1.06)</td></tr>
               <tr><td>m</td><td>Gas Cap Ratio</td><td>dimensionless</td><td>Ratio of initial gas cap to oil zone volume</td></tr>
               <tr><td>Swi</td><td>Initial Water Saturation</td><td>fraction</td><td>Connate water saturation (typically 0.15–0.35)</td></tr>
@@ -1079,7 +1144,7 @@ hr.div { border: none; border-top: 1px solid var(--g200); margin: 4px 0; }
 // ═══════════════════════════════════════════════════════════
 // STATE
 // ═══════════════════════════════════════════════════════════
-const state = { water:true, gasscap:true, compress:true, convert:false, stepsOpen:false,
+const state = { water:true, gasscap:true, compress:true, inject:false, convert:false, stepsOpen:false,
                 autocalc:false, showsteps:false, highlight:true };
 
 // ═══════════════════════════════════════════════════════════
@@ -1117,20 +1182,23 @@ function navigateTo(page) {
 // PRESETS
 // ═══════════════════════════════════════════════════════════
 const presets = {
-  volumetric: {Np:12500,Bt:1.25,Bi:1.3,Rp:850,Rsi:900,Bg:0.0045,Bgi:0.005,We:0,Wp:0,Bw:1.02,m:0,Swi:0.25,cw:3e-6,cf:1e-6,dp:1500,water:false,gasscap:false,compress:true},
-  water_drive:{Np:15000,Bt:1.30,Bi:1.32,Rp:820,Rsi:850,Bg:0.0046,Bgi:0.005,We:30000,Wp:10000,Bw:1.02,m:0,Swi:0.25,cw:3e-6,cf:1e-6,dp:1200,water:true,gasscap:false,compress:false},
-  gas_cap:    {Np:12500,Bt:1.25,Bi:1.3,Rp:850,Rsi:900,Bg:0.0045,Bgi:0.005,We:25000,Wp:8000,Bw:1.02,m:0.35,Swi:0.25,cw:3e-6,cf:1e-6,dp:1500,water:true,gasscap:true,compress:true},
-  custom:     {Np:12500,Bt:1.25,Bi:1.3,Rp:850,Rsi:900,Bg:0.0045,Bgi:0.005,We:25000,Wp:8000,Bw:1.02,m:0.35,Swi:0.25,cw:3e-6,cf:1e-6,dp:1500,water:true,gasscap:true,compress:true},
+  // Bo=oil FVF, Boi=initial oil FVF, Rs=current solution GOR, Rsi=initial solution GOR
+  // Bt computed as: Bt = Bo + (Rsi - Rs)*Bg    Bti = Boi
+  volumetric: {Np:12500,Bo:1.210,Boi:1.300,Rp:850,Rs:750,Rsi:900,Bg:0.0045,Bgi:0.005,We:0,Wp:0,Bw:1.02,m:0,Swi:0.25,cw:3e-6,cf:1e-6,dp:1500,Ginj:0,Bginj:0.004,Winj:0,Bwinj:1.0,water:false,gasscap:false,compress:true,inject:false},
+  water_drive:{Np:15000,Bo:1.280,Boi:1.320,Rp:820,Rs:800,Rsi:850,Bg:0.0046,Bgi:0.005,We:30000,Wp:10000,Bw:1.02,m:0,Swi:0.25,cw:3e-6,cf:1e-6,dp:1200,Ginj:0,Bginj:0.004,Winj:0,Bwinj:1.0,water:true,gasscap:false,compress:false,inject:false},
+  gas_cap:    {Np:12500,Bo:1.210,Boi:1.300,Rp:850,Rs:750,Rsi:900,Bg:0.0045,Bgi:0.005,We:25000,Wp:8000,Bw:1.02,m:0.35,Swi:0.25,cw:3e-6,cf:1e-6,dp:1500,Ginj:0,Bginj:0.004,Winj:0,Bwinj:1.0,water:true,gasscap:true,compress:true,inject:false},
+  custom:     {Np:12500,Bo:1.210,Boi:1.300,Rp:850,Rs:750,Rsi:900,Bg:0.0045,Bgi:0.005,We:25000,Wp:8000,Bw:1.02,m:0.35,Swi:0.25,cw:3e-6,cf:1e-6,dp:1500,Ginj:0,Bginj:0.004,Winj:0,Bwinj:1.0,water:true,gasscap:true,compress:true,inject:false},
 };
 
 function applyPreset(name) {
   const p = presets[name]; if (!p) return;
-  ['Np','Bt','Bi','Rp','Rsi','Bg','Bgi','We','Wp','Bw','m','Swi','cw','cf','dp'].forEach(k => {
+  ['Np','Bo','Boi','Rp','Rs','Rsi','Bg','Bgi','We','Wp','Bw','m','Swi','cw','cf','dp','Ginj','Bginj','Winj','Bwinj'].forEach(k => {
     const el = document.getElementById(k); if (el) el.value = p[k];
   });
   if (state.water !== p.water) toggleFeature('water');
   if (state.gasscap !== p.gasscap) toggleFeature('gasscap');
   if (state.compress !== p.compress) toggleFeature('compress');
+  if (state.inject !== p.inject) toggleFeature('inject');
   document.querySelectorAll('.preset-item').forEach(el => el.classList.toggle('active', el.dataset.preset === name));
   calculate();
 }
@@ -1146,9 +1214,10 @@ function toggleFeature(key) {
   state[key] = !state[key];
   const t = document.getElementById('toggle_' + key);
   if (t) t.classList.toggle('on', state[key]);
-  if (key === 'water') { const s = document.getElementById('water_section'); if (s) s.style.opacity = state.water ? '1' : '0.4'; }
+  if (key === 'water') { const s = document.getElementById('water_section'); if (s) { s.style.opacity = state.water ? '1' : '0.4'; s.style.pointerEvents = state.water ? '' : 'none'; } }
   if (key === 'gasscap') { const g = document.getElementById('m_group'); if (g) g.style.opacity = state.gasscap ? '1' : '0.4'; }
   if (key === 'compress') { ['cw_group','cf_group'].forEach(id => { const g = document.getElementById(id); if (g) g.style.opacity = state.compress ? '1' : '0.4'; }); }
+  if (key === 'inject') { const s = document.getElementById('inject_section'); if (s) { s.style.opacity = state.inject ? '1' : '0.4'; s.style.pointerEvents = state.inject ? '' : 'none'; } }
   updateFormula();
 }
 
@@ -1164,13 +1233,15 @@ function toggleSetting(key) {
 function updateFormula() {
   const box = document.getElementById('formula_box');
   if (!box) return;
-  let lines = ['N = [Np·(Bt + (Rp−Rsi)·Bg)'];
-  lines.push(state.water ? '    − (We − Wp·Bw)]' : '  ]');
-  lines.push('  / [(Bt−Bi)');
-  if (state.gasscap) lines.push('  + m·Bi·(Bg/Bgi − 1)');
-  if (state.compress) lines.push('  + Bi·(1+m)·((Swi·cw+cf)/(1−Swi))·Δp');
-  lines.push('  ]');
-  box.innerHTML = lines.map(l => `<div class="formula-line">${l}</div>`).join('');
+  // Full MBE from PDF: N = [Np(Bo+(Rp-Rs)Bg) - (We-WpBw) - GinjBginj - WinjBwinj]
+  //                       / [(Bo-Boi)+(Rsi-Rs)Bg + mBoi(Bg/Bgi-1) + Boi(1+m)(SwiCw+Cf)/(1-Swi)*dp]
+  let num = 'N<sub>p</sub>[B<sub>o</sub> + (R<sub>p</sub>−R<sub>s</sub>)·B<sub>g</sub>]';
+  if (state.water) num += ' − (W<sub>e</sub> − W<sub>p</sub>·B<sub>w</sub>)';
+  if (state.inject) num += ' − G<sub>inj</sub>·B<sub>ginj</sub> − W<sub>inj</sub>·B<sub>winj</sub>';
+  let den = '(B<sub>o</sub>−B<sub>oi</sub>) + (R<sub>si</sub>−R<sub>s</sub>)·B<sub>g</sub>';
+  if (state.gasscap) den += ' + m·B<sub>oi</sub>·(B<sub>g</sub>/B<sub>gi</sub>−1)';
+  if (state.compress) den += ' + B<sub>oi</sub>(1+m)·[(S<sub>wi</sub>c<sub>w</sub>+c<sub>f</sub>)/(1−S<sub>wi</sub>)]·Δp';
+  box.innerHTML = `<div class="formula-line" style="font-size:11px;line-height:1.6">N = <span style="display:inline-block;text-align:center;vertical-align:middle"><span style="display:block;border-bottom:1px solid var(--g700);padding:2px 6px">${num}</span><span style="display:block;padding:2px 6px">${den}</span></span></div>`;
 }
 
 function updateUnits() {
@@ -1184,39 +1255,79 @@ function updateUnits() {
 function getVal(id) { return parseFloat(document.getElementById(id).value) || 0; }
 
 function calculate() {
-  const Np=getVal('Np'), Bt=getVal('Bt'), Bi=getVal('Bi'), Rp=getVal('Rp'), Rsi=getVal('Rsi');
+  const Np=getVal('Np');
+  const Bo=getVal('Bo'), Boi=getVal('Boi');
+  const Rp=getVal('Rp'), Rs=getVal('Rs'), Rsi=getVal('Rsi');
   const Bg=getVal('Bg'), Bgi=getVal('Bgi');
   const We=state.water?getVal('We'):0, Wp=state.water?getVal('Wp'):0, Bw=state.water?getVal('Bw'):1;
   const m=state.gasscap?getVal('m'):0, Swi=getVal('Swi');
   const cw=state.compress?getVal('cw'):0, cf=state.compress?getVal('cf'):0, dp=getVal('dp');
+  const Ginj=state.inject?getVal('Ginj'):0, Bginj=state.inject?getVal('Bginj'):0;
+  const Winj=state.inject?getVal('Winj'):0, Bwinj=state.inject?getVal('Bwinj'):1;
+
+  // Compute two-phase FVF: Bt = Bo + (Rsi-Rs)*Bg,  Bti = Boi
+  const Bt  = Bo  + (Rsi - Rs) * Bg;
+  const Bti = Boi;
+
+  // Update display
+  const btd = document.getElementById('Bt_display');
+  const btid = document.getElementById('Bti_display');
+  if(btd) btd.textContent = Bt.toFixed(5);
+  if(btid) btid.textContent = Bti.toFixed(5);
 
   const warns = []; let valid = true;
   if (Np<=0){warns.push({t:'err',msg:'Np must be > 0'});valid=false;}
-  if (Bi<=0||Bt<=0){warns.push({t:'err',msg:'Formation volume factors must be > 0'});valid=false;}
+  if (Boi<=0||Bo<=0){warns.push({t:'err',msg:'Bo and Boi must be > 0'});valid=false;}
   if (Bgi<=0){warns.push({t:'err',msg:'Bgi must be > 0'});valid=false;}
   if (Swi<=0||Swi>=1) warns.push({t:'warn',msg:'Swi should be between 0 and 1'});
-  if (Rp<Rsi) warns.push({t:'warn',msg:'Rp < Rsi: unusual for depletion drive'});
+  if (Rp<Rs) warns.push({t:'warn',msg:'Rp < Rs: check producing GOR vs solution GOR'});
+  if (Rs>Rsi) warns.push({t:'warn',msg:'Rs > Rsi: current solution GOR exceeds initial — check PVT data'});
 
-  const prodTerm = Np*(Bt+(Rp-Rsi)*Bg);
-  const waterTerm = We-Wp*Bw;
-  const numerator = prodTerm - waterTerm;
-  const expTerm = Bt-Bi;
-  const gcTerm = state.gasscap ? m*Bi*((Bg/Bgi)-1) : 0;
-  const cmpTerm = state.compress ? Bi*(1+m)*((Swi*cw+cf)/(1-Swi))*dp : 0;
-  const denom = expTerm+gcTerm+cmpTerm;
+  // ── NUMERATOR ─────────────────────────────────────────────────────────────
+  // Np[Bo + (Rp - Rs)·Bg]  — underground withdrawal of oil + produced free gas
+  const prodTerm   = Np * (Bo + (Rp - Rs) * Bg);
+  // Net water term: (We − Wp·Bw)
+  const waterTerm  = We - Wp * Bw;
+  // Injection term: Ginj·Bginj + Winj·Bwinj
+  const injTerm    = Ginj * Bginj + Winj * Bwinj;
+  // Numerator = withdrawal − net water influx − injection
+  const numerator  = prodTerm - waterTerm - injTerm;
 
-  if (Math.abs(denom)<1e-12){warns.push({t:'err',msg:'Division by zero: denominator ≈ 0'});setResult(null);setWarnings(warns);return;}
-  const N = numerator/denom;
+  // ── DENOMINATOR ───────────────────────────────────────────────────────────
+  // (Bo - Boi) + (Rsi - Rs)·Bg  ← oil + dissolved gas expansion = (Bt - Bti)
+  const expTerm    = (Bo - Boi) + (Rsi - Rs) * Bg;   // = Bt - Bti
+  // m·Boi·(Bg/Bgi − 1)   ← gas cap expansion
+  const gcTerm     = state.gasscap ? m * Boi * ((Bg / Bgi) - 1) : 0;
+  // Boi·(1+m)·[(Swi·cw + cf)/(1−Swi)]·Δp  ← connate water & rock expansion
+  const cmpTerm    = state.compress ? Boi * (1 + m) * ((Swi * cw + cf) / (1 - Swi)) * dp : 0;
+  const denom      = expTerm + gcTerm + cmpTerm;
+
+  if (Math.abs(denom)<1e-12){warns.push({t:'err',msg:'Division by zero: denominator ≈ 0 — check inputs'});setResult(null);setWarnings(warns);return;}
+  const N = numerator / denom;
   if (!valid){setResult(null);setWarnings(warns);return;}
-  if (N<0) warns.push({t:'warn',msg:'Negative N — check input consistency'});
+  if (N<0) warns.push({t:'warn',msg:'Negative N — inputs may be inconsistent (check We, Bo, Rs values)'});
   if (warns.length===0){
     warns.push({t:'ok',msg:'All required inputs are provided.'});
     warns.push({t:'ok',msg:'Units are consistent.'});
     warns.push({t:'ok',msg:'No division by zero detected.'});
   }
+
+  // ── DRIVE INDICES ─────────────────────────────────────────────────────────
+  // A = Np[Bt + (Rp - Rsi)·Bg]  (note: Rsi not Rs, per Havlena-Odeh)
+  const A = Np * (Bt + (Rp - Rsi) * Bg);
+  let DDI=0, SDI=0, WDI=0, EDI=0;
+  if(Math.abs(A)>1e-12 && N>0){
+    DDI = N * (Bt - Bti) / A;
+    SDI = state.gasscap ? (N * m * Bti * ((Bg / Bgi) - 1)) / A : 0;
+    WDI = state.water ? waterTerm / A : 0;
+    EDI = state.compress ? (N * Boi * (1+m) * ((cw*Swi+cf)/(1-Swi)) * dp) / A : 0;
+  }
+
   setResult(N);setWarnings(warns);
-  buildSummary({prodTerm,waterTerm,expTerm,gcTerm,cmpTerm,numerator,denom,N});
-  buildSteps({Np,Bt,Rp,Rsi,Bg,Bi,Bgi,We,Wp,Bw,m,Swi,cw,cf,dp,prodTerm,waterTerm,expTerm,gcTerm,cmpTerm,numerator,denom,N});
+  buildSummary({prodTerm,waterTerm,injTerm,expTerm,gcTerm,cmpTerm,numerator,denom,N,Bt,Bti});
+  buildSteps({Np,Bo,Boi,Rp,Rs,Rsi,Bg,Bgi,We,Wp,Bw,m,Swi,cw,cf,dp,Ginj,Bginj,Winj,Bwinj,
+              Bt,Bti,prodTerm,waterTerm,injTerm,expTerm,gcTerm,cmpTerm,numerator,denom,N});
+  buildDriveIndices({DDI,SDI,WDI,EDI,A,N});
   saveToScenarios(N);
 }
 
@@ -1238,32 +1349,67 @@ function setWarnings(arr) {
   }).join('');
 }
 
-function buildSummary({prodTerm,waterTerm,expTerm,gcTerm,cmpTerm,numerator,denom,N}){
-  const rows=[['Np[Bt+(Rp-Rsi)Bg]','Oil production + solution gas',prodTerm.toFixed(2),'rb'],
-    ['(We − Wp·Bw)','Water term',waterTerm.toFixed(2),'rb'],
-    ['(Bt − Bi)','Formation FVF expansion',expTerm.toFixed(4),'rb/STB']];
-  if(state.gasscap) rows.push(['m·Bi·(Bg/Bgi−1)','Gas cap expansion',gcTerm.toFixed(6),'rb/STB']);
-  if(state.compress) rows.push(['Bi(1+m)(Swi·cw+cf)/(1−Swi)·Δp','Compressibility',cmpTerm.toFixed(8),'rb/STB']);
-  rows.push(['Numerator','Total withdrawal',numerator.toFixed(2),'rb'],
-            ['Denominator','Total expansion',denom.toFixed(6),'rb/STB'],
-            ['N (OOIP)','Original Oil In Place',N.toFixed(2),'STB']);
+function buildSummary({prodTerm,waterTerm,injTerm,expTerm,gcTerm,cmpTerm,numerator,denom,N,Bt,Bti}){
+  const rows=[
+    ['N<sub>p</sub>[B<sub>o</sub>+(R<sub>p</sub>−R<sub>s</sub>)·B<sub>g</sub>]','Oil + free gas withdrawal',prodTerm.toFixed(2),'rb'],
+    ['B<sub>t</sub> (computed)','B<sub>o</sub>+(R<sub>si</sub>−R<sub>s</sub>)·B<sub>g</sub>',Bt.toFixed(6),'rb/STB'],
+    ['B<sub>ti</sub> (= B<sub>oi</sub>)','Initial two-phase FVF',Bti.toFixed(6),'rb/STB'],
+  ];
+  if(state.water) rows.push(['W<sub>e</sub> − W<sub>p</sub>·B<sub>w</sub>','Net water influx',waterTerm.toFixed(2),'rb']);
+  if(state.inject) rows.push(['G<sub>inj</sub>·B<sub>ginj</sub>+W<sub>inj</sub>·B<sub>winj</sub>','Total injection volume',injTerm.toFixed(2),'rb']);
+  rows.push(['Numerator','Total underground withdrawal',numerator.toFixed(2),'rb']);
+  rows.push(['(B<sub>o</sub>−B<sub>oi</sub>)+(R<sub>si</sub>−R<sub>s</sub>)·B<sub>g</sub>','Oil+gas expansion (=B<sub>t</sub>−B<sub>ti</sub>)',expTerm.toFixed(6),'rb/STB']);
+  if(state.gasscap) rows.push(['m·B<sub>oi</sub>·(B<sub>g</sub>/B<sub>gi</sub>−1)','Gas cap expansion',gcTerm.toFixed(6),'rb/STB']);
+  if(state.compress) rows.push(['B<sub>oi</sub>(1+m)(S<sub>wi</sub>c<sub>w</sub>+c<sub>f</sub>)/(1−S<sub>wi</sub>)·Δp','Rock & water expansion',cmpTerm.toFixed(8),'rb/STB']);
+  rows.push(['Denominator','Total expansion (drive)',denom.toFixed(6),'rb/STB'],
+            ['<strong>N (OOIP)</strong>','<strong>Original Oil In Place</strong>',N.toFixed(2),'STB']);
   document.getElementById('summary_body').innerHTML = rows.map(r=>
     `<tr><td>${r[0]}</td><td>${r[1]}</td><td>${r[2]}</td><td>${r[3]}</td></tr>`).join('');
 }
 
 function buildSteps(d){
   const steps=[
-    {term:'Production Term',val:`Np×(Bt+(Rp−Rsi)·Bg) = ${d.prodTerm.toFixed(2)} rb`},
-    {term:'Water Term',val:`We−Wp×Bw = ${d.waterTerm.toFixed(2)} rb`},
+    {term:'Bo',val:`${d.Bo} rb/STB`},
+    {term:'Boi',val:`${d.Boi} rb/STB`},
+    {term:'Bt = Bo+(Rsi−Rs)·Bg',val:`${d.Bt.toFixed(6)} rb/STB`},
+    {term:'Bti = Boi',val:`${d.Bti.toFixed(6)} rb/STB`},
+    {term:'Prod. Term Np[Bo+(Rp−Rs)Bg]',val:`${d.prodTerm.toFixed(2)} rb`},
+    {term:'Water Term We−Wp·Bw',val:state.water?`${d.waterTerm.toFixed(2)} rb`:'Not included'},
+    {term:'Injection Term',val:state.inject?`${d.injTerm.toFixed(2)} rb`:'Not included'},
     {term:'Numerator',val:`${d.numerator.toFixed(2)} rb`},
-    {term:'Expansion (Bt−Bi)',val:`${d.expTerm.toFixed(6)} rb/STB`},
-    {term:'Gas Cap Term',val:state.gasscap?`${d.gcTerm.toFixed(6)} rb/STB`:'Not included'},
-    {term:'Compress. Term',val:state.compress?`${d.cmpTerm.toFixed(8)} rb/STB`:'Not included'},
+    {term:'Exp. (Bo−Boi)+(Rsi−Rs)Bg',val:`${d.expTerm.toFixed(6)} rb/STB`},
+    {term:'Gas Cap m·Boi(Bg/Bgi−1)',val:state.gasscap?`${d.gcTerm.toFixed(6)} rb/STB`:'Not included'},
+    {term:'Rock/Water Boi(1+m)[(Swi·cw+cf)/(1−Swi)]·Δp',val:state.compress?`${d.cmpTerm.toFixed(8)} rb/STB`:'Not included'},
     {term:'Denominator',val:`${d.denom.toFixed(6)} rb/STB`},
-    {term:'N = Num / Den',val:`${d.N.toFixed(2)} STB`},
+    {term:'N = Numerator / Denominator',val:`${d.N.toFixed(2)} STB`},
   ];
   document.getElementById('steps_content').innerHTML = steps.map(s=>
     `<div class="step-row"><span class="step-term">${s.term}</span><span class="step-val">${s.val}</span></div>`).join('');
+}
+
+function buildDriveIndices({DDI,SDI,WDI,EDI,A,N}){
+  const card = document.getElementById('drive_index_card');
+  const bars = document.getElementById('drive_bars');
+  if(!card||!bars) return;
+  if(!N||N<=0||isNaN(DDI)){card.style.display='none';return;}
+  card.style.display='';
+  const items=[
+    {label:'DDI — Depletion Drive',val:DDI,color:'#d60000'},
+    {label:'SDI — Gas Cap Drive',val:SDI,color:'#e37400'},
+    {label:'WDI — Water Drive',val:WDI,color:'#1e8e3e'},
+    {label:'EDI — Rock/Fluid Expansion',val:EDI,color:'#8430ce'},
+  ];
+  bars.innerHTML = items.map(it=>{
+    const pct = Math.max(0,Math.min(100,(it.val*100)));
+    return `<div style="margin-bottom:8px">
+      <div style="display:flex;justify-content:space-between;font-size:11px;font-weight:500;color:var(--g800);margin-bottom:3px">
+        <span>${it.label}</span><span style="color:${it.color}">${(it.val*100).toFixed(1)}%</span>
+      </div>
+      <div style="height:7px;background:var(--g100);border-radius:4px;overflow:hidden">
+        <div style="width:${pct}%;height:100%;background:${it.color};border-radius:4px;transition:width .4s ease"></div>
+      </div>
+    </div>`;
+  }).join('') + `<div style="margin-top:6px;font-size:10px;color:var(--g600)">Sum = ${((DDI+SDI+WDI+EDI)*100).toFixed(1)}%</div>`;
 }
 
 function toggleSteps(){
@@ -1281,7 +1427,7 @@ function toggleSteps(){
 function resetAll(){ applyPreset('gas_cap'); }
 function newScenario(){
   navigateTo('dashboard');
-  ['Np','Bt','Bi','Rp','Rsi','Bg','Bgi','We','Wp','Bw','m','Swi','cw','cf','dp'].forEach(k=>{
+  ['Np','Bo','Boi','Rp','Rs','Rsi','Bg','Bgi','We','Wp','Bw','m','Swi','cw','cf','dp','Ginj','Bginj','Winj','Bwinj'].forEach(k=>{
     const el=document.getElementById(k);if(el)el.value='';
   });
   document.getElementById('result_value').textContent='—';
