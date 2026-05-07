@@ -1182,10 +1182,12 @@ function navigateTo(page) {
 // PRESETS
 // ═══════════════════════════════════════════════════════════
 const presets = {
-  volumetric: {Np:15000,Bt:1.45,Bi:1.35,Rp:900,Rsi:900,Bg:0.005,Bgi:0.005,We:0,Wp:0,Bw:1.02,m:0,Swi:0.25,cw:3e-6,cf:1e-6,dp:1500,water:false,gasscap:false,compress:true},
-  water_drive:{Np:25000,Bt:1.38,Bi:1.35,Rp:900,Rsi:900,Bg:0.005,Bgi:0.005,We:35000,Wp:5000,Bw:1.02,m:0,Swi:0.25,cw:3e-6,cf:1e-6,dp:500,water:true,gasscap:false,compress:false},
-  gas_cap:    {Np:20000,Bt:1.40,Bi:1.35,Rp:1500,Rsi:900,Bg:0.006,Bgi:0.005,We:0,Wp:0,Bw:1.02,m:0.4,Swi:0.25,cw:3e-6,cf:1e-6,dp:800,water:false,gasscap:true,compress:false},
-  custom:     {Np:10000,Bt:1.40,Bi:1.20,Rp:1000,Rsi:500,Bg:0.005,Bgi:0.005,We:5000,Wp:1000,Bw:1.05,m:0.2,Swi:0.25,cw:3e-6,cf:1e-6,dp:1000,water:true,gasscap:true,compress:true},
+  // Bo=oil FVF, Boi=initial oil FVF, Rs=current solution GOR, Rsi=initial solution GOR
+  // Bt computed as: Bt = Bo + (Rsi - Rs)*Bg    Bti = Boi
+  volumetric: {Np:12500,Bo:1.210,Boi:1.300,Rp:850,Rs:750,Rsi:900,Bg:0.0045,Bgi:0.005,We:0,Wp:0,Bw:1.02,m:0,Swi:0.25,cw:3e-6,cf:1e-6,dp:1500,Ginj:0,Bginj:0.004,Winj:0,Bwinj:1.0,water:false,gasscap:false,compress:true,inject:false},
+  water_drive:{Np:15000,Bo:1.280,Boi:1.320,Rp:820,Rs:800,Rsi:850,Bg:0.0046,Bgi:0.005,We:30000,Wp:10000,Bw:1.02,m:0,Swi:0.25,cw:3e-6,cf:1e-6,dp:1200,Ginj:0,Bginj:0.004,Winj:0,Bwinj:1.0,water:true,gasscap:false,compress:false,inject:false},
+  gas_cap:    {Np:12500,Bo:1.210,Boi:1.300,Rp:850,Rs:750,Rsi:900,Bg:0.0045,Bgi:0.005,We:25000,Wp:8000,Bw:1.02,m:0.35,Swi:0.25,cw:3e-6,cf:1e-6,dp:1500,Ginj:0,Bginj:0.004,Winj:0,Bwinj:1.0,water:true,gasscap:true,compress:true,inject:false},
+  custom:     {Np:12500,Bo:1.210,Boi:1.300,Rp:850,Rs:750,Rsi:900,Bg:0.0045,Bgi:0.005,We:25000,Wp:8000,Bw:1.02,m:0.35,Swi:0.25,cw:3e-6,cf:1e-6,dp:1500,Ginj:0,Bginj:0.004,Winj:0,Bwinj:1.0,water:true,gasscap:true,compress:true,inject:false},
 };
 
 function applyPreset(name) {
@@ -1438,9 +1440,9 @@ function newScenario(){
 // SAVED SCENARIOS
 // ═══════════════════════════════════════════════════════════
 let savedScenarios = [
-  {id:'s1',name:'Volumetric Reservoir',desc:'Depletion drive, no water or gas cap',badge:'accent',N:207686.80,tags:['Volumetric','No gas cap','No water'],preset:'volumetric'},
-  {id:'s2',name:'Water Drive Field',desc:'Strong aquifer support',badge:'teal',N:153333.33,tags:['Water drive','We > 0'],preset:'water_drive'},
-  {id:'s3',name:'Gas Cap Example',desc:'Gas cap expansion',badge:'orange',N:632911.39,tags:['Gas cap','Full model'],preset:'gas_cap'},
+  {id:'s1',name:'Volumetric Reservoir',desc:'Depletion drive, no water or gas cap',badge:'accent',N:45230.18,tags:['Volumetric','No gas cap','No water'],preset:'volumetric'},
+  {id:'s2',name:'Water Drive Field',desc:'Strong aquifer support',badge:'teal',N:118500.00,tags:['Water drive','We > 0'],preset:'water_drive'},
+  {id:'s3',name:'Gas Cap Example',desc:'Gas cap + water influx',badge:'orange',N:88752.61,tags:['Gas cap','Water','Full model'],preset:'gas_cap'},
 ];
 
 function saveToScenarios(N){
