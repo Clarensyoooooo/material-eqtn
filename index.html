@@ -466,9 +466,146 @@ hr.div { border: none; border-top: 1px solid var(--g200); margin: 4px 0; }
 ::-webkit-scrollbar { width: 6px; height: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: var(--g300); border-radius: 3px; }
+
+/* ════════════════════════════════════════════
+   MOBILE OVERLAY BACKDROP
+════════════════════════════════════════════ */
+.sidebar-backdrop {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.35);
+  z-index: 99;
+  opacity: 0;
+  transition: opacity .3s ease;
+}
+.sidebar-backdrop.visible {
+  opacity: 1;
+}
+
+/* ════════════════════════════════════════════
+   RESPONSIVE — TABLET (≤ 900px)
+════════════════════════════════════════════ */
+@media (max-width: 900px) {
+  /* Dashboard switches from 2-col grid to single column */
+  #page-dashboard.active {
+    grid-template-columns: 1fr;
+  }
+  .right-col {
+    /* show right panel below left panel */
+    display: flex;
+    flex-direction: column;
+  }
+  /* Help page: stack nav above content */
+  .help-grid {
+    grid-template-columns: 1fr;
+  }
+  .help-nav {
+    position: static;
+  }
+  /* About grid: 1 col */
+  .about-grid {
+    grid-template-columns: 1fr;
+  }
+  /* Converter cards: 1 col */
+  .uc-cards-grid {
+    grid-template-columns: 1fr;
+  }
+  /* Topbar title: smaller text */
+  .topbar-title h1 { font-size: 15px; }
+  .topbar-title p  { display: none; }
+}
+
+/* ════════════════════════════════════════════
+   RESPONSIVE — MOBILE (≤ 640px)
+════════════════════════════════════════════ */
+@media (max-width: 640px) {
+  /* Sidebar becomes an off-canvas drawer */
+  .sidebar {
+    transform: translateX(-100%);
+    width: var(--sw) !important; /* always full width when open */
+    transition: transform .3s cubic-bezier(.4,0,.2,1);
+    z-index: 200;
+  }
+  body.mobile-open .sidebar {
+    transform: translateX(0);
+  }
+  body.mobile-open .sidebar-backdrop {
+    display: block;
+  }
+
+  /* Main always takes full width */
+  .main {
+    margin-left: 0 !important;
+  }
+
+  /* Topbar compact */
+  .topbar {
+    padding: 0 12px;
+  }
+  .topbar-title h1 { font-size: 14px; }
+  .topbar-actions .btn span { display: none; } /* icon-only buttons */
+  .topbar-actions .btn { padding: 7px 10px; }
+
+  /* Pages padding */
+  .page { padding: 12px; }
+
+  /* Form grid: 1 column on mobile */
+  .form-grid { grid-template-columns: 1fr; }
+
+  /* Calc page grid: 1 col */
+  .calc-grid { grid-template-columns: 1fr; }
+
+  /* Unit converter row: stack vertically */
+  .uc-row {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+  .uc-mid { display: none; }
+  .uc-grid {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+  .uc-arrow { display: none; }
+
+  /* Settings rows: stack label + control */
+  .settings-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  /* Result value smaller */
+  .result-value { font-size: 28px; }
+
+  /* Scenario grid: 1 col */
+  .scenario-grid { grid-template-columns: 1fr; }
+
+  /* About hero smaller padding */
+  .about-hero { padding: 24px 16px; }
+  .about-hero h2 { font-size: 18px; }
+  .about-grid { grid-template-columns: 1fr; }
+
+  /* Calc result box: stack */
+  .calc-result-box {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+  }
+  .calc-result-val { font-size: 22px; }
+
+  /* Help: stack */
+  .help-grid { grid-template-columns: 1fr; }
+
+  /* Computed Bt display: wrap nicely */
+  .card-body [style*="white-space"] { white-space: normal !important; }
+}
 </style>
 </head>
 <body>
+
+<!-- Mobile sidebar backdrop -->
+<div class="sidebar-backdrop" id="sidebar-backdrop" onclick="closeMobileSidebar()"></div>
 
 <!-- ═══════════════════════ SIDEBAR ═══════════════════════ -->
 <aside class="sidebar">
@@ -1584,9 +1721,42 @@ function resetSettings(){
 // ═══════════════════════════════════════════════════════════
 // SIDEBAR TOGGLE
 // ═══════════════════════════════════════════════════════════
-function toggleSidebar() {
-  document.body.classList.toggle('collapsed');
+function isMobile() {
+  return window.innerWidth <= 640;
 }
+
+function toggleSidebar() {
+  if (isMobile()) {
+    const isOpen = document.body.classList.toggle('mobile-open');
+    const backdrop = document.getElementById('sidebar-backdrop');
+    if (backdrop) {
+      backdrop.style.display = isOpen ? 'block' : 'none';
+      // trigger reflow for CSS transition
+      backdrop.offsetHeight;
+      backdrop.classList.toggle('visible', isOpen);
+    }
+  } else {
+    document.body.classList.toggle('collapsed');
+  }
+}
+
+function closeMobileSidebar() {
+  document.body.classList.remove('mobile-open');
+  const backdrop = document.getElementById('sidebar-backdrop');
+  if (backdrop) {
+    backdrop.classList.remove('visible');
+    setTimeout(() => { backdrop.style.display = 'none'; }, 300);
+  }
+}
+
+// Close mobile sidebar when a nav item is clicked
+document.addEventListener('DOMContentLoaded', function() {
+  document.querySelectorAll('.nav-item, .preset-item').forEach(function(el) {
+    el.addEventListener('click', function() {
+      if (isMobile()) closeMobileSidebar();
+    });
+  });
+});
 
 // ═══════════════════════════════════════════════════════════
 // INIT
